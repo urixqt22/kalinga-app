@@ -1,0 +1,195 @@
+import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { logoutUser } from '../services/auth';
+
+export default function DashboardSeniorScreen() {
+    const router = useRouter();
+
+    const handleLogout = async () => {
+        await logoutUser();
+        router.replace('/');
+    };
+
+    return (
+        <ScrollView contentContainerStyle={styles.container}>
+            {/* Header */}
+            <View style={styles.header}>
+                <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+                    <Ionicons name="log-out-outline" size={20} color="#2563eb" />
+                    <Text style={styles.logoutText}>Logout</Text>
+                </TouchableOpacity>
+                <TouchableOpacity>
+                    <Ionicons name="notifications" size={30} color="#2563eb" />
+                </TouchableOpacity>
+            </View>
+
+            {/* Profile Section */}
+            <View style={styles.profileSection}>
+                <View style={styles.logoCircle}>
+                    <Ionicons name="heart" size={50} color="#fff" />
+                    <View style={styles.smileIcon}>
+                        <Ionicons name="happy" size={24} color="#2563eb" />
+                    </View>
+                </View>
+                <Text style={styles.appName}>KALINGA</Text>
+                <Text style={styles.greeting}>Mabuhay, Lolo Moises</Text>
+            </View>
+
+            {/* Menu Buttons */}
+            <View style={styles.menuContainer}>
+                <TouchableOpacity style={styles.menuButton} onPress={() => router.push('/dashboard-kalusugan')}>
+                    <View style={styles.menuIconCircle}>
+                        <Ionicons name="heart-outline" size={30} color="#fff" />
+                    </View>
+                    <Text style={styles.menuText}>Kalusugan</Text>
+                    <Ionicons name="chevron-forward" size={24} color="#fff" />
+                </TouchableOpacity>
+
+                <TouchableOpacity style={styles.menuButton}>
+                    <View style={styles.menuIconCircle}>
+                        <Ionicons name="newspaper-outline" size={30} color="#fff" />
+                    </View>
+                    <Text style={styles.menuText}>Serbisyo ng Gobyerno</Text>
+                    <Ionicons name="chevron-forward" size={24} color="#fff" />
+                </TouchableOpacity>
+
+                <TouchableOpacity style={styles.menuButton}>
+                    <View style={styles.menuIconCircle}>
+                        <Ionicons name="people-outline" size={30} color="#fff" />
+                    </View>
+                    <Text style={styles.menuText}>Pamilya</Text>
+                    <Ionicons name="chevron-forward" size={24} color="#fff" />
+                </TouchableOpacity>
+            </View>
+
+            {/* Footer Controls */}
+            <View style={styles.footerControls}>
+                <TouchableOpacity style={styles.settingsButton}>
+                    <Ionicons name="settings-outline" size={24} color="#2563eb" />
+                    <Text style={styles.settingsText}>Settings</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity style={styles.micButton}>
+                    <Ionicons name="mic" size={32} color="#fff" />
+                </TouchableOpacity>
+            </View>
+
+        </ScrollView>
+    );
+}
+
+const styles = StyleSheet.create({
+    container: {
+        flexGrow: 1,
+        backgroundColor: '#fff',
+        padding: 20,
+        paddingTop: 60,
+    },
+    header: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 30,
+    },
+    logoutButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#eff6ff',
+        paddingVertical: 8,
+        paddingHorizontal: 15,
+        borderRadius: 20,
+    },
+    logoutText: {
+        color: '#2563eb',
+        fontWeight: 'bold',
+        marginLeft: 5,
+    },
+    profileSection: {
+        alignItems: 'center',
+        marginBottom: 40,
+    },
+    logoCircle: {
+        width: 80,
+        height: 80,
+        borderRadius: 40,
+        backgroundColor: '#2563eb',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginBottom: 10,
+    },
+    smileIcon: {
+        position: 'absolute',
+        backgroundColor: '#fff',
+        borderRadius: 15,
+        padding: 2,
+        bottom: 0,
+        right: 0,
+    },
+    appName: {
+        fontSize: 22,
+        fontWeight: '900',
+        color: '#1e3a8a', // Darker blue
+        letterSpacing: 1,
+    },
+    greeting: {
+        fontSize: 14,
+        color: '#3b82f6',
+    },
+    menuContainer: {
+        gap: 15,
+        marginBottom: 40,
+    },
+    menuButton: {
+        backgroundColor: '#3b82f6', // Bright blue
+        flexDirection: 'row',
+        alignItems: 'center',
+        padding: 20,
+        borderRadius: 20,
+        elevation: 3,
+    },
+    menuIconCircle: {
+        backgroundColor: 'rgba(255,255,255,0.2)',
+        width: 50,
+        height: 50,
+        borderRadius: 15,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginRight: 15,
+    },
+    menuText: {
+        color: '#fff',
+        fontSize: 18,
+        fontWeight: 'bold',
+        flex: 1,
+    },
+    footerControls: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+    },
+    settingsButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        borderWidth: 1,
+        borderColor: '#3b82f6',
+        paddingVertical: 12,
+        paddingHorizontal: 40,
+        borderRadius: 20,
+    },
+    settingsText: {
+        color: '#2563eb',
+        fontSize: 18,
+        fontWeight: 'bold',
+        marginLeft: 10,
+    },
+    micButton: {
+        width: 60,
+        height: 60,
+        borderRadius: 20,
+        backgroundColor: '#2563eb',
+        justifyContent: 'center',
+        alignItems: 'center',
+        elevation: 4,
+    },
+});
