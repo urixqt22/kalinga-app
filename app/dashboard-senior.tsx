@@ -19,8 +19,9 @@ export default function DashboardSeniorScreen() {
                     <Ionicons name="log-out-outline" size={20} color="#2563eb" />
                     <Text style={styles.logoutText}>Logout</Text>
                 </TouchableOpacity>
-                <TouchableOpacity>
+                <TouchableOpacity style={styles.notificationContainer} onPress={() => router.push('/dashboard-notifications')}>
                     <Ionicons name="notifications" size={30} color="#2563eb" />
+                    <View style={styles.notificationBadge} />
                 </TouchableOpacity>
             </View>
 
@@ -46,7 +47,7 @@ export default function DashboardSeniorScreen() {
                     <Ionicons name="chevron-forward" size={24} color="#fff" />
                 </TouchableOpacity>
 
-                <TouchableOpacity style={styles.menuButton}>
+                <TouchableOpacity style={styles.menuButton} onPress={() => router.push('/dashboard-serbisyo')}>
                     <View style={styles.menuIconCircle}>
                         <Ionicons name="newspaper-outline" size={30} color="#fff" />
                     </View>
@@ -54,7 +55,7 @@ export default function DashboardSeniorScreen() {
                     <Ionicons name="chevron-forward" size={24} color="#fff" />
                 </TouchableOpacity>
 
-                <TouchableOpacity style={styles.menuButton}>
+                <TouchableOpacity style={styles.menuButton} onPress={() => router.push('/dashboard-pamilya')}>
                     <View style={styles.menuIconCircle}>
                         <Ionicons name="people-outline" size={30} color="#fff" />
                     </View>
@@ -65,7 +66,7 @@ export default function DashboardSeniorScreen() {
 
             {/* Footer Controls */}
             <View style={styles.footerControls}>
-                <TouchableOpacity style={styles.settingsButton}>
+                <TouchableOpacity style={styles.settingsButton} onPress={() => router.push('/dashboard-settings')}>
                     <Ionicons name="settings-outline" size={24} color="#2563eb" />
                     <Text style={styles.settingsText}>Settings</Text>
                 </TouchableOpacity>
@@ -191,5 +192,20 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         elevation: 4,
+    },
+    notificationContainer: {
+        position: 'relative',
+        padding: 5,
+    },
+    notificationBadge: {
+        position: 'absolute',
+        top: 5,
+        right: 5,
+        width: 10,
+        height: 10,
+        borderRadius: 5,
+        backgroundColor: '#ef4444', // Red
+        borderWidth: 1.5,
+        borderColor: '#fff',
     },
 });

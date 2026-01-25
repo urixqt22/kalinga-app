@@ -20,8 +20,10 @@ export default function DashboardCaretakerScreen() {
                     <Text style={styles.logoutText}>Logout</Text>
                 </TouchableOpacity>
                 <View style={styles.headerRight}>
-                    <TouchableOpacity>
+                    <TouchableOpacity onPress={() => router.push({ pathname: '/dashboard-notifications', params: { role: 'caretaker' } })}>
                         <Ionicons name="notifications" size={30} color="#a855f7" />
+                        {/* Notification Dot Indicator */}
+                        <View style={styles.notificationBadge} />
                     </TouchableOpacity>
                 </View>
             </View>
@@ -47,7 +49,7 @@ export default function DashboardCaretakerScreen() {
             </View>
 
             {/* Health Monitor */}
-            <TouchableOpacity style={[styles.card, styles.healthCard]}>
+            <TouchableOpacity style={[styles.card, styles.healthCard]} onPress={() => router.push('/dashboard-health-monitor')}>
                 <View style={styles.purpleIconBox}>
                     <Ionicons name="pulse" size={30} color="#fff" />
                 </View>
@@ -58,7 +60,7 @@ export default function DashboardCaretakerScreen() {
             </TouchableOpacity>
 
             {/* Family Contacts */}
-            <TouchableOpacity style={[styles.card, styles.familyCard]}>
+            <TouchableOpacity style={[styles.card, styles.familyCard]} onPress={() => router.push({ pathname: '/dashboard-pamilya', params: { role: 'caretaker' } })}>
                 <View style={styles.purpleIconBox}>
                     <Ionicons name="people" size={30} color="#fff" />
                 </View>
@@ -69,7 +71,7 @@ export default function DashboardCaretakerScreen() {
             </TouchableOpacity>
 
             {/* Settings */}
-            <TouchableOpacity style={styles.settingsButton}>
+            <TouchableOpacity style={styles.settingsButton} onPress={() => router.push({ pathname: '/dashboard-settings', params: { role: 'caretaker' } })}>
                 <Ionicons name="settings-outline" size={24} color="#a855f7" />
                 <Text style={styles.settingsText}>Settings</Text>
             </TouchableOpacity>
@@ -206,5 +208,16 @@ const styles = StyleSheet.create({
         color: '#a855f7',
         fontSize: 12,
         textAlign: 'center',
+    },
+    notificationBadge: {
+        position: 'absolute',
+        top: 0,
+        right: 0,
+        width: 12,
+        height: 12,
+        borderRadius: 6,
+        backgroundColor: '#ef4444', // Red dot
+        borderWidth: 2,
+        borderColor: '#fff',
     },
 });
