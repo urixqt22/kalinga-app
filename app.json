@@ -20,7 +20,7 @@
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "com.anonymous.KalingaApp"
+      "package": "com.urixqt22.kalinga"
     },
     "web": {
       "output": "static",
