@@ -1,10 +1,41 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { useRouter } from 'expo-router';
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import { ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { auth } from '../configs/firebase';
+import { getMedicationsRealtime, Medication } from '../services/medication';
 
 export default function MgaGamotDashboardScreen() {
     const router = useRouter();
+    const [meds, setMeds] = useState<Medication[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        if (!auth.currentUser) return;
+
+        const unsubscribe = getMedicationsRealtime(auth.currentUser.uid, (fetchedMeds) => {
+            // Sort by time roughly (AM/PM) - a simple string sort might suffice for MVP or we parse it
+            // Let's rely on simple string sort for now or implement a quick custom sort
+            // "08:00 AM", "12:00 PM"
+            // Simple generic sort:
+            const sorted = fetchedMeds.sort((a, b) => {
+                // Parse "HH:mm AM/PM" roughly
+                const parseTime = (t: string) => {
+                    const [time, modifier] = t.split(' ');
+                    let [hours, minutes] = time.split(':');
+                    if (hours === '12') hours = '00';
+                    if (modifier === 'PM') hours = String(parseInt(hours, 10) + 12);
+                    return `${hours}${minutes}`;
+                };
+                return parseTime(a.time).localeCompare(parseTime(b.time));
+            });
+            setMeds(sorted);
+            setLoading(false);
+        });
+
+        return () => unsubscribe();
+    }, []);
 
     return (
         <ScrollView contentContainerStyle={styles.container}>
@@ -18,50 +49,43 @@ export default function MgaGamotDashboardScreen() {
                 <Text style={styles.headerSubtitle}>View Your Medications</Text>
             </View>
 
-            {/* Next Up Card */}
-            <View style={styles.nextUpCard}>
-                <View style={styles.nextUpIconCircle}>
-                    <Ionicons name="notifications" size={30} color="#fff" />
+            {/* Next Up Card - Logic: Find first 'Scheduled' med */}
+            {meds.length > 0 && (
+                <View style={styles.nextUpCard}>
+                    <View style={styles.nextUpIconCircle}>
+                        <Ionicons name="notifications" size={30} color="#fff" />
+                    </View>
+                    <View>
+                        <Text style={styles.nextUpTitle}>Next Up: {meds[0].name} {meds[0].dosage}</Text>
+                        <Text style={styles.nextUpSubtitle}>{meds[0].time}</Text>
+                    </View>
                 </View>
-                <View>
-                    <Text style={styles.nextUpTitle}>Next Up: Losartan 50mg</Text>
-                    <Text style={styles.nextUpSubtitle}>10:00 AM</Text>
-                </View>
-            </View>
+            )}
 
             {/* Medication List */}
             <View style={styles.listContainer}>
-
-                <View style={styles.medCard}>
-                    <View style={styles.medIconBox}>
-                        <MaterialCommunityIcons name="pill" size={24} color="#3b82f6" />
-                    </View>
-                    <View>
-                        <Text style={styles.medName}>Metformin 500mg</Text>
-                        <Text style={styles.medTime}>12:00 NN</Text>
-                    </View>
-                </View>
-
-                <View style={styles.medCard}>
-                    <View style={styles.medIconBox}>
-                        <MaterialCommunityIcons name="pill" size={24} color="#3b82f6" />
-                    </View>
-                    <View>
-                        <Text style={styles.medName}>Biogesic 500mg</Text>
-                        <Text style={styles.medTime}>04:00 PM</Text>
-                    </View>
-                </View>
-
-                <View style={styles.medCard}>
-                    <View style={styles.medIconBox}>
-                        <MaterialCommunityIcons name="pill" size={24} color="#3b82f6" />
-                    </View>
-                    <View>
-                        <Text style={styles.medName}>Alaxan FR 10mg</Text>
-                        <Text style={styles.medTime}>08:00 PM</Text>
-                    </View>
-                </View>
-
+                {loading ? (
+                    <ActivityIndicator size="large" color="#3b82f6" />
+                ) : (
+                    <>
+                        {meds.map((med) => (
+                            <View key={med.id} style={styles.medCard}>
+                                <View style={styles.medIconBox}>
+                                    <MaterialCommunityIcons name="pill" size={24} color="#3b82f6" />
+                                </View>
+                                <View>
+                                    <Text style={styles.medName}>{med.name} {med.dosage}</Text>
+                                    <Text style={styles.medTime}>{med.time}</Text>
+                                </View>
+                            </View>
+                        ))}
+                        {meds.length === 0 && (
+                            <Text style={{ textAlign: 'center', color: '#64748b', marginTop: 20 }}>
+                                No medications scheduled.
+                            </Text>
+                        )}
+                    </>
+                )}
             </View>
 
         </ScrollView>
@@ -78,11 +102,7 @@ const styles = StyleSheet.create({
         paddingTop: 60,
         paddingHorizontal: 20,
         paddingBottom: 30,
-        borderBottomLeftRadius: 0, // Flat bottom for this designs header? actually looks clean flat or curved. 
-        // Screenshot shows standard header style, let's keep consistent with Kalusugan
-        // Actually screenshot shows NO curved bottom for this one? 
-        // Let's stick to the previous style for consistency but check screenshot carefully.
-        // Image 2 shows just flat blue header.
+        borderBottomLeftRadius: 0,
     },
     backButton: {
         flexDirection: 'row',

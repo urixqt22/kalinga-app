@@ -1,9 +1,39 @@
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import { ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { auth } from '../configs/firebase';
+import { getVitalsRealtime, Vital } from '../services/vitals';
 
 export default function PresyonDashboardScreen() {
     const router = useRouter();
+    const [vitals, setVitals] = useState<Vital[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        if (!auth.currentUser) return;
+
+        const unsubscribe = getVitalsRealtime(auth.currentUser.uid, (fetchedVitals) => {
+            setVitals(fetchedVitals);
+            setLoading(false);
+        });
+
+        return () => unsubscribe();
+    }, []);
+
+    const latestVital = vitals.length > 0 ? vitals[0] : null;
+
+    // Helper to format date
+    const formatDate = (timestamp: any) => {
+        if (!timestamp) return '';
+        const date = timestamp.toDate();
+        return date.toLocaleString('en-US', {
+            weekday: 'short',
+            hour: 'numeric',
+            minute: 'numeric',
+            hour12: true
+        });
+    };
 
     return (
         <ScrollView contentContainerStyle={styles.container}>
@@ -17,85 +47,65 @@ export default function PresyonDashboardScreen() {
                 <Text style={styles.headerSubtitle}>History of Blood Pressure & Glucose</Text>
             </View>
 
-            {/* Today's Vitals Card */}
-            <View style={styles.vitalsCard}>
-                <View style={styles.vitalsHeader}>
-                    <MaterialCommunityIcons name="heart-pulse" size={24} color="#2563eb" />
-                    <Text style={styles.vitalsTitle}>Today's Vitals</Text>
+            {loading ? (
+                <View style={{ marginTop: 50 }}>
+                    <ActivityIndicator size="large" color="#3b82f6" />
                 </View>
-
-                <View style={styles.statsContainer}>
-                    {/* BP Card */}
-                    <View style={styles.statBox}>
-                        <Text style={styles.statLabel}>Blood Pressure</Text>
-                        <Text style={styles.statValue}>120/80</Text>
-                        <Text style={styles.statStatus}>Normal</Text>
-                    </View>
-
-                    {/* Sugar Card */}
-                    <View style={styles.statBox}>
-                        <Text style={styles.statLabel}>Blood Sugar</Text>
-                        <Text style={styles.statValue}>95 mg/dL</Text>
-                        <Text style={styles.statStatus}>Normal</Text>
-                    </View>
-                </View>
-            </View>
-
-            {/* History List */}
-            <View style={styles.listContainer}>
-
-                {/* Item 1 */}
-                <View style={styles.historyCard}>
-                    <View style={styles.historyIconBox}>
-                        <MaterialCommunityIcons name="pulse" size={24} color="#3b82f6" />
-                    </View>
-                    <View style={styles.historyContent}>
-                        <View style={styles.historyRow}>
-                            <Text style={styles.historyMainText}>BP: 120/80</Text>
-                            <Text style={styles.historyDate}>Yesterday, 8:15 AM</Text>
+            ) : (
+                <>
+                    {/* Today's Vitals Card */}
+                    <View style={styles.vitalsCard}>
+                        <View style={styles.vitalsHeader}>
+                            <MaterialCommunityIcons name="heart-pulse" size={24} color="#2563eb" />
+                            <Text style={styles.vitalsTitle}>Latest Vitals</Text>
                         </View>
-                        <View style={styles.historyRow}>
-                            <Text style={styles.historySubText}>Sugar: 100 mg/dL</Text>
-                            <Text style={styles.statusNormal}>Normal</Text>
+
+                        <View style={styles.statsContainer}>
+                            {/* BP Card */}
+                            <View style={styles.statBox}>
+                                <Text style={styles.statLabel}>Blood Pressure</Text>
+                                <Text style={styles.statValue}>{latestVital ? `${latestVital.bpSystolic}/${latestVital.bpDiastolic}` : "--/--"}</Text>
+                                <Text style={styles.statStatus}>{latestVital ? "Recorded" : "No Data"}</Text>
+                            </View>
+
+                            {/* Sugar Card */}
+                            <View style={styles.statBox}>
+                                <Text style={styles.statLabel}>Blood Sugar</Text>
+                                <Text style={styles.statValue}>{latestVital ? `${latestVital.bloodSugar} mg/dL` : "--"}</Text>
+                                <Text style={styles.statStatus}>{latestVital ? "Recorded" : "No Data"}</Text>
+                            </View>
                         </View>
                     </View>
-                </View>
 
-                {/* Item 2 */}
-                <View style={styles.historyCard}>
-                    <View style={styles.historyIconBox}>
-                        <MaterialCommunityIcons name="pulse" size={24} color="#3b82f6" />
-                    </View>
-                    <View style={styles.historyContent}>
-                        <View style={styles.historyRow}>
-                            <Text style={styles.historyMainText}>BP: 135/85</Text>
-                            <Text style={styles.historyDate}>Yesterday, 8:15 AM</Text>
-                        </View>
-                        <View style={styles.historyRow}>
-                            <Text style={styles.historySubText}>Sugar: 110 mg/dL</Text>
-                            <Text style={styles.statusElevated}>Elevated</Text>
-                        </View>
-                    </View>
-                </View>
+                    {/* History List */}
+                    <View style={styles.listContainer}>
+                        <Text style={{ fontSize: 18, fontWeight: 'bold', color: '#64748b', marginBottom: 15 }}>History</Text>
 
-                {/* Item 3 */}
-                <View style={styles.historyCard}>
-                    <View style={styles.historyIconBox}>
-                        <MaterialCommunityIcons name="pulse" size={24} color="#3b82f6" />
-                    </View>
-                    <View style={styles.historyContent}>
-                        <View style={styles.historyRow}>
-                            <Text style={styles.historyMainText}>BP: 118/79</Text>
-                            <Text style={styles.historyDate}>Yesterday, 8:15 AM</Text>
-                        </View>
-                        <View style={styles.historyRow}>
-                            <Text style={styles.historySubText}>Sugar: 98 mg/dL</Text>
-                            <Text style={styles.statusNormal}>Normal</Text>
-                        </View>
-                    </View>
-                </View>
+                        {vitals.map((vital) => (
+                            <View key={vital.id} style={styles.historyCard}>
+                                <View style={styles.historyIconBox}>
+                                    <MaterialCommunityIcons name="pulse" size={24} color="#3b82f6" />
+                                </View>
+                                <View style={styles.historyContent}>
+                                    <View style={styles.historyRow}>
+                                        <Text style={styles.historyMainText}>BP: {vital.bpSystolic}/{vital.bpDiastolic}</Text>
+                                        <Text style={styles.historyDate}>{formatDate(vital.createdAt)}</Text>
+                                    </View>
+                                    <View style={styles.historyRow}>
+                                        <Text style={styles.historySubText}>Sugar: {vital.bloodSugar} mg/dL</Text>
+                                        <Text style={styles.statusNormal}>Recorded</Text>
+                                    </View>
+                                </View>
+                            </View>
+                        ))}
 
-            </View>
+                        {vitals.length === 0 && (
+                            <Text style={{ textAlign: 'center', color: '#94a3b8', marginTop: 10 }}>No history available.</Text>
+                        )}
+
+                    </View>
+                </>
+            )}
 
         </ScrollView>
     );
@@ -184,6 +194,7 @@ const styles = StyleSheet.create({
     },
     listContainer: {
         paddingHorizontal: 20,
+        paddingBottom: 50,
     },
     historyCard: {
         backgroundColor: '#fff',

@@ -1,14 +1,17 @@
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useRouter } from 'expo-router';
+import { doc, getDoc } from 'firebase/firestore';
 import { useState } from 'react';
-import { Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
-import { addMedication } from '../services/medicationStore';
+import { ActivityIndicator, Alert, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { auth, db } from '../configs/firebase';
+import { addMedicationToFirestore } from '../services/medication';
 
 export default function CaretakerAddMedicationScreen() {
     const router = useRouter();
     const [name, setName] = useState('');
     const [dosage, setDosage] = useState('');
+    const [loading, setLoading] = useState(false);
 
     // Time Picker State
     const [time, setTime] = useState('');
@@ -18,7 +21,7 @@ export default function CaretakerAddMedicationScreen() {
     const onChange = (event: any, selectedDate?: Date) => {
         if (selectedDate) {
             setDate(selectedDate);
-            // Format time manually to string "8:00 AM" to match existing data format
+            // Format time manually to string "8:00 AM"
             let hours = selectedDate.getHours();
             const minutes = selectedDate.getMinutes();
             const ampm = hours >= 12 ? 'PM' : 'AM';
@@ -33,15 +36,53 @@ export default function CaretakerAddMedicationScreen() {
         if (Platform.OS === 'android') {
             setShowPicker(false);
         }
-        // iOS picker is often displayed inline or requires manual toggle if displayed as modal
     };
 
-    const handleSave = () => {
-        if (name && dosage && time) {
-            addMedication({ name, dosage, time });
-            router.back();
-        } else {
-            alert('Please fill all fields');
+    const handleSave = async () => {
+        if (!name || !dosage || !time) {
+            Alert.alert('Error', 'Please fill all fields');
+            return;
+        }
+
+        if (!auth.currentUser) {
+            Alert.alert('Error', 'You are not logged in');
+            return;
+        }
+
+        setLoading(true);
+        try {
+            // 1. Get the current user's connected elders
+            const userDocRef = doc(db, "users", auth.currentUser.uid);
+            const userDoc = await getDoc(userDocRef);
+
+            if (userDoc.exists()) {
+                const userData = userDoc.data();
+                const linkedElders = userData.linkedElders || [];
+
+                if (linkedElders.length === 0) {
+                    Alert.alert("No Elder Connected", "Please connect to an Elder first in the Dashboard.");
+                    setLoading(false);
+                    return;
+                }
+
+                // For MVP: Default to the first connected elder
+                const targetElderId = linkedElders[0];
+
+                // 2. Add Medication
+                await addMedicationToFirestore(targetElderId, auth.currentUser.uid, {
+                    name,
+                    dosage,
+                    time
+                });
+
+                Alert.alert("Success", "Medication scheduled successfully!", [
+                    { text: "OK", onPress: () => router.back() }
+                ]);
+            }
+        } catch (error: any) {
+            Alert.alert("Error", error.message);
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -54,7 +95,7 @@ export default function CaretakerAddMedicationScreen() {
                     <Text style={styles.backText}>Back</Text>
                 </TouchableOpacity>
                 <Text style={styles.headerTitle}>Schedule Medication</Text>
-                <Text style={styles.headerSubtitle}>Lola Moises Medication Schedule</Text>
+                <Text style={styles.headerSubtitle}>Adding for your connected Patient</Text>
             </View>
 
             <View style={styles.content}>
@@ -119,9 +160,19 @@ export default function CaretakerAddMedicationScreen() {
 
                 </View>
 
-                <TouchableOpacity style={styles.scheduleButton} onPress={handleSave}>
-                    <MaterialCommunityIcons name="pill" size={24} color="#fff" style={{ marginRight: 10 }} />
-                    <Text style={styles.scheduleButtonText}>Schedule Medication</Text>
+                <TouchableOpacity
+                    style={[styles.scheduleButton, loading && { opacity: 0.7 }]}
+                    onPress={handleSave}
+                    disabled={loading}
+                >
+                    {loading ? (
+                        <ActivityIndicator color="#fff" />
+                    ) : (
+                        <>
+                            <MaterialCommunityIcons name="pill" size={24} color="#fff" style={{ marginRight: 10 }} />
+                            <Text style={styles.scheduleButtonText}>Schedule Medication</Text>
+                        </>
+                    )}
                 </TouchableOpacity>
 
             </View>

@@ -55,9 +55,9 @@ const app = initializeApp(firebaseConfig);
 
 // Initialize Auth with persistence
 // This tells Firebase to save the user's login token to the phone's storage
-import { getAuth } from "firebase/auth";
+import { Auth, getAuth } from "firebase/auth";
 
-let auth;
+let auth: Auth;
 try {
     // Try to get existing auth instance to prevent "auth/already-initialized" error on hot reload
     auth = getAuth(app);

@@ -1,9 +1,64 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { doc, getDoc } from 'firebase/firestore';
+import { useState } from 'react';
+import { ActivityIndicator, Alert, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { auth, db } from '../configs/firebase';
+import { addVitalToFirestore } from '../services/vitals';
 
 export default function CaretakerAddReadingScreen() {
     const router = useRouter();
+    const [systolic, setSystolic] = useState('');
+    const [diastolic, setDiastolic] = useState('');
+    const [sugar, setSugar] = useState('');
+    const [loading, setLoading] = useState(false);
+
+    const handleSave = async () => {
+        if (!systolic || !diastolic || !sugar) {
+            Alert.alert("Error", "Please fill in all fields.");
+            return;
+        }
+
+        if (!auth.currentUser) {
+            Alert.alert("Error", "You are not logged in.");
+            return;
+        }
+
+        setLoading(true);
+        try {
+            // 1. Get connected elder
+            const userDocRef = doc(db, "users", auth.currentUser.uid);
+            const userDoc = await getDoc(userDocRef);
+
+            if (userDoc.exists()) {
+                const userData = userDoc.data();
+                const linkedElders = userData.linkedElders || [];
+
+                if (linkedElders.length === 0) {
+                    Alert.alert("Error", "No connected elder found. Please connect to a senior first.");
+                    setLoading(false);
+                    return;
+                }
+
+                const targetElderId = linkedElders[0];
+
+                // 2. Add Vital
+                await addVitalToFirestore(targetElderId, auth.currentUser.uid, {
+                    bpSystolic: systolic,
+                    bpDiastolic: diastolic,
+                    bloodSugar: sugar
+                });
+
+                Alert.alert("Success", "Vitals recorded successfully!", [
+                    { text: "OK", onPress: () => router.back() }
+                ]);
+            }
+        } catch (error: any) {
+            Alert.alert("Error", error.message);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     return (
         <ScrollView contentContainerStyle={styles.container}>
@@ -22,19 +77,48 @@ export default function CaretakerAddReadingScreen() {
                 <View style={styles.inputGroup}>
                     <Text style={styles.label}>Blood Pressure</Text>
                     <View style={styles.row}>
-                        <TextInput style={[styles.input, styles.halfInput]} placeholder="Systolic (e.g. 120)" keyboardType="numeric" placeholderTextColor="#9ca3af" />
+                        <TextInput
+                            style={[styles.input, styles.halfInput]}
+                            placeholder="Systolic (e.g. 120)"
+                            keyboardType="numeric"
+                            placeholderTextColor="#9ca3af"
+                            value={systolic}
+                            onChangeText={setSystolic}
+                        />
                         <Text style={styles.separator}>/</Text>
-                        <TextInput style={[styles.input, styles.halfInput]} placeholder="Diastolic (e.g. 80)" keyboardType="numeric" placeholderTextColor="#9ca3af" />
+                        <TextInput
+                            style={[styles.input, styles.halfInput]}
+                            placeholder="Diastolic (e.g. 80)"
+                            keyboardType="numeric"
+                            placeholderTextColor="#9ca3af"
+                            value={diastolic}
+                            onChangeText={setDiastolic}
+                        />
                     </View>
                 </View>
 
                 <View style={styles.inputGroup}>
                     <Text style={styles.label}>Blood Sugar (mg/dL)</Text>
-                    <TextInput style={styles.input} placeholder="e.g. 95" keyboardType="numeric" placeholderTextColor="#9ca3af" />
+                    <TextInput
+                        style={styles.input}
+                        placeholder="e.g. 95"
+                        keyboardType="numeric"
+                        placeholderTextColor="#9ca3af"
+                        value={sugar}
+                        onChangeText={setSugar}
+                    />
                 </View>
 
-                <TouchableOpacity style={styles.saveButton}>
-                    <Text style={styles.saveButtonText}>Save Reading</Text>
+                <TouchableOpacity
+                    style={[styles.saveButton, loading && { opacity: 0.7 }]}
+                    onPress={handleSave}
+                    disabled={loading}
+                >
+                    {loading ? (
+                        <ActivityIndicator color="#fff" />
+                    ) : (
+                        <Text style={styles.saveButtonText}>Save Reading</Text>
+                    )}
                 </TouchableOpacity>
 
             </View>

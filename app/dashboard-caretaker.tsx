@@ -1,89 +1,192 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { doc, getDoc } from 'firebase/firestore';
+import { useEffect, useState } from 'react';
+import { ActivityIndicator, Alert, Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { auth, db } from '../configs/firebase';
 import { logoutUser } from '../services/auth';
+import { sendConnectionRequest } from '../services/connection';
 
 export default function DashboardCaretakerScreen() {
     const router = useRouter();
+    const [modalVisible, setModalVisible] = useState(false);
+    const [elderName, setElderName] = useState('');
+    const [loading, setLoading] = useState(false);
+    const [userName, setUserName] = useState('');
+
+    useEffect(() => {
+        const fetchUserName = async () => {
+            if (auth.currentUser) {
+                const docRef = doc(db, "users", auth.currentUser.uid);
+                const docSnap = await getDoc(docRef);
+                if (docSnap.exists()) {
+                    setUserName(docSnap.data().name || "Caretaker");
+                }
+            }
+        };
+        fetchUserName();
+    }, []);
 
     const handleLogout = async () => {
         await logoutUser();
         router.replace('/');
     };
 
+    const handleAddElder = async () => {
+        if (!elderName.trim()) {
+            Alert.alert("Error", "Please enter the Elder's name.");
+            return;
+        }
+
+        if (!auth.currentUser) {
+            Alert.alert("Error", "You are not logged in.");
+            return;
+        }
+
+        setLoading(true);
+        try {
+            await sendConnectionRequest(elderName.trim(), auth.currentUser.uid, userName);
+            Alert.alert("Success", "Connection request sent!", [
+                { text: "OK", onPress: () => { setModalVisible(false); setElderName(''); } }
+            ]);
+        } catch (error: any) {
+            Alert.alert("Failed", error.message);
+        } finally {
+            setLoading(false);
+        }
+    };
+
     return (
-        <ScrollView contentContainerStyle={styles.container}>
-            {/* Header */}
-            <View style={styles.header}>
-                <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-                    <Ionicons name="log-out-outline" size={20} color="#a855f7" />
-                    <Text style={styles.logoutText}>Logout</Text>
-                </TouchableOpacity>
-                <View style={styles.headerRight}>
-                    <TouchableOpacity onPress={() => router.push({ pathname: '/dashboard-notifications', params: { role: 'caretaker' } })}>
-                        <Ionicons name="notifications" size={30} color="#a855f7" />
-                        {/* Notification Dot Indicator */}
-                        <View style={styles.notificationBadge} />
+        <View style={{ flex: 1 }}>
+            <ScrollView contentContainerStyle={styles.container}>
+                {/* Header */}
+                <View style={styles.header}>
+                    <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+                        <Ionicons name="log-out-outline" size={20} color="#a855f7" />
+                        <Text style={styles.logoutText}>Logout</Text>
                     </TouchableOpacity>
+                    <View style={styles.headerRight}>
+                        <TouchableOpacity onPress={() => router.push({ pathname: '/dashboard-notifications', params: { role: 'caretaker' } })}>
+                            <Ionicons name="notifications" size={30} color="#a855f7" />
+                            {/* Notification Dot Indicator */}
+                            <View style={styles.notificationBadge} />
+                        </TouchableOpacity>
+                    </View>
                 </View>
-            </View>
 
-            {/* Profile Section */}
-            <View style={styles.profileSection}>
-                <View style={styles.avatarCircle}>
-                    <Ionicons name="person" size={50} color="#fff" />
+                {/* Profile Section */}
+                <View style={styles.profileSection}>
+                    <View style={styles.avatarCircle}>
+                        <Ionicons name="person" size={50} color="#fff" />
+                    </View>
+                    <Text style={styles.roleTitle}>Caretaker Dashboard</Text>
+                    <Text style={styles.monitoringText}>Monitoring Patients</Text>
                 </View>
-                <Text style={styles.roleTitle}>Caretaker Dashboard</Text>
-                <Text style={styles.monitoringText}>Monitoring Lola Moises</Text>
-            </View>
 
-            {/* Status Card */}
-            <View style={[styles.card, styles.statusCard]}>
-                <View style={styles.iconCircle}>
-                    <Ionicons name="notifications-outline" size={30} color="#fff" />
+                {/* Status Card */}
+                <View style={[styles.card, styles.statusCard]}>
+                    <View style={styles.iconCircle}>
+                        <Ionicons name="notifications-outline" size={30} color="#fff" />
+                    </View>
+                    <View>
+                        <Text style={styles.cardTitleWhite}>All Good!</Text>
+                        <Text style={styles.cardSubtitleWhite}>No alerts or missed medications</Text>
+                    </View>
                 </View>
-                <View>
-                    <Text style={styles.cardTitleWhite}>All Good!</Text>
-                    <Text style={styles.cardSubtitleWhite}>No alerts or missed medications</Text>
-                </View>
-            </View>
 
-            {/* Health Monitor */}
-            <TouchableOpacity style={[styles.card, styles.healthCard]} onPress={() => router.push('/dashboard-health-monitor')}>
-                <View style={styles.purpleIconBox}>
-                    <Ionicons name="pulse" size={30} color="#fff" />
-                </View>
-                <View>
-                    <Text style={styles.cardTitleWhite}>Health Monitor</Text>
-                    <Text style={styles.cardSubtitleWhite}>View vitals & Medications</Text>
-                </View>
-            </TouchableOpacity>
+                {/* Add Elder Button - NEW */}
+                <TouchableOpacity style={[styles.card, { backgroundColor: '#e879f9' }]} onPress={() => setModalVisible(true)}>
+                    <View style={styles.iconCircle}>
+                        <Ionicons name="person-add-outline" size={30} color="#fff" />
+                    </View>
+                    <View>
+                        <Text style={styles.cardTitleWhite}>Add Elder</Text>
+                        <Text style={styles.cardSubtitleWhite}>Connect to a new senior</Text>
+                    </View>
+                </TouchableOpacity>
 
-            {/* Family Contacts */}
-            <TouchableOpacity style={[styles.card, styles.familyCard]} onPress={() => router.push({ pathname: '/dashboard-pamilya', params: { role: 'caretaker' } })}>
-                <View style={styles.purpleIconBox}>
-                    <Ionicons name="people" size={30} color="#fff" />
+                {/* Health Monitor */}
+                <TouchableOpacity style={[styles.card, styles.healthCard]} onPress={() => router.push('/dashboard-health-monitor')}>
+                    <View style={styles.purpleIconBox}>
+                        <Ionicons name="pulse" size={30} color="#fff" />
+                    </View>
+                    <View>
+                        <Text style={styles.cardTitleWhite}>Health Monitor</Text>
+                        <Text style={styles.cardSubtitleWhite}>View vitals & Medications</Text>
+                    </View>
+                </TouchableOpacity>
+
+                {/* Family Contacts */}
+                <TouchableOpacity style={[styles.card, styles.familyCard]} onPress={() => router.push({ pathname: '/dashboard-pamilya', params: { role: 'caretaker' } })}>
+                    <View style={styles.purpleIconBox}>
+                        <Ionicons name="people" size={30} color="#fff" />
+                    </View>
+                    <View>
+                        <Text style={styles.cardTitleWhite}>Family Contacts</Text>
+                        <Text style={styles.cardSubtitleWhite}>Communicate with family</Text>
+                    </View>
+                </TouchableOpacity>
+
+                {/* Settings */}
+                <TouchableOpacity style={styles.settingsButton} onPress={() => router.push({ pathname: '/dashboard-settings', params: { role: 'caretaker' } })}>
+                    <Ionicons name="settings-outline" size={24} color="#a855f7" />
+                    <Text style={styles.settingsText}>Settings</Text>
+                </TouchableOpacity>
+
+                {/* Footer Banner */}
+                <View style={styles.footerBanner}>
+                    <Text style={styles.footerBannerText}>
+                        <Text style={{ fontWeight: 'bold' }}>Caretaker Mode:</Text> Government services are managed by the senior
+                    </Text>
                 </View>
-                <View>
-                    <Text style={styles.cardTitleWhite}>Family Contacts</Text>
-                    <Text style={styles.cardSubtitleWhite}>Communicate with family</Text>
+
+            </ScrollView>
+
+            {/* Add Elder Modal */}
+            <Modal
+                animationType="slide"
+                transparent={true}
+                visible={modalVisible}
+                onRequestClose={() => setModalVisible(false)}
+            >
+                <View style={styles.modalOverlay}>
+                    <View style={styles.modalContent}>
+                        <Text style={styles.modalTitle}>Connect to Elder</Text>
+                        <Text style={styles.modalSubtitle}>Enter the EXACT name of the senior as registered.</Text>
+
+                        <Text style={styles.inputLabel}>Elder's Name</Text>
+                        <TextInput
+                            style={styles.input}
+                            placeholder="e.g., Lolo Moises"
+                            value={elderName}
+                            onChangeText={setElderName}
+                            autoCapitalize="words"
+                        />
+
+                        <View style={styles.modalButtons}>
+                            <TouchableOpacity
+                                style={[styles.button, styles.cancelButton]}
+                                onPress={() => setModalVisible(false)}
+                            >
+                                <Text style={styles.cancelButtonText}>Cancel</Text>
+                            </TouchableOpacity>
+
+                            <TouchableOpacity
+                                style={[styles.button, styles.sendButton]}
+                                onPress={handleAddElder}
+                                disabled={loading}
+                            >
+                                {loading ? (
+                                    <ActivityIndicator color="#fff" />
+                                ) : (
+                                    <Text style={styles.sendButtonText}>Send Request</Text>
+                                )}
+                            </TouchableOpacity>
+                        </View>
+                    </View>
                 </View>
-            </TouchableOpacity>
-
-            {/* Settings */}
-            <TouchableOpacity style={styles.settingsButton} onPress={() => router.push({ pathname: '/dashboard-settings', params: { role: 'caretaker' } })}>
-                <Ionicons name="settings-outline" size={24} color="#a855f7" />
-                <Text style={styles.settingsText}>Settings</Text>
-            </TouchableOpacity>
-
-            {/* Footer Banner */}
-            <View style={styles.footerBanner}>
-                <Text style={styles.footerBannerText}>
-                    <Text style={{ fontWeight: 'bold' }}>Caretaker Mode:</Text> Government services are managed by the senior
-                </Text>
-            </View>
-
-        </ScrollView>
+            </Modal>
+        </View>
     );
 }
 
@@ -219,5 +322,73 @@ const styles = StyleSheet.create({
         backgroundColor: '#ef4444', // Red dot
         borderWidth: 2,
         borderColor: '#fff',
+    },
+    // Modal Styles
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0,0,0,0.5)',
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: 20,
+    },
+    modalContent: {
+        backgroundColor: '#fff',
+        borderRadius: 20,
+        padding: 25,
+        width: '100%',
+        alignItems: 'center',
+    },
+    modalTitle: {
+        fontSize: 22,
+        fontWeight: 'bold',
+        color: '#a855f7',
+        marginBottom: 10,
+    },
+    modalSubtitle: {
+        fontSize: 14,
+        color: '#6b7280',
+        textAlign: 'center',
+        marginBottom: 20,
+    },
+    inputLabel: {
+        alignSelf: 'flex-start',
+        fontSize: 14,
+        fontWeight: 'bold',
+        color: '#374151',
+        marginBottom: 5,
+    },
+    input: {
+        backgroundColor: '#f3f4f6',
+        width: '100%',
+        padding: 15,
+        borderRadius: 12,
+        marginBottom: 25,
+        fontSize: 16,
+    },
+    modalButtons: {
+        flexDirection: 'row',
+        gap: 15,
+        width: '100%',
+    },
+    button: {
+        flex: 1,
+        padding: 15,
+        borderRadius: 12,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    cancelButton: {
+        backgroundColor: '#f3f4f6',
+    },
+    cancelButtonText: {
+        color: '#374151',
+        fontWeight: 'bold',
+    },
+    sendButton: {
+        backgroundColor: '#a855f7',
+    },
+    sendButtonText: {
+        color: '#fff',
+        fontWeight: 'bold',
     },
 });
