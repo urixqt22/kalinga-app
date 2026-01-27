@@ -1,5 +1,6 @@
 import {
     addDoc,
+    arrayRemove,
     arrayUnion,
     collection,
     doc,
@@ -54,15 +55,18 @@ export const sendConnectionRequest = async (elderName: string, caretakerId: stri
         }
 
         // 3. Create the request
-        await addDoc(requestsRef, {
-            fromUserId: caretakerId,
-            caretakerName: caretakerName,
+        return {
+            success: true,
+            message: "Request sent successfully!",
             toUserId: elderId,
-            status: 'pending',
-            createdAt: serverTimestamp()
-        });
-
-        return { success: true, message: "Request sent successfully!" };
+            requestId: (await addDoc(requestsRef, {
+                fromUserId: caretakerId,
+                caretakerName: caretakerName,
+                toUserId: elderId,
+                status: 'pending',
+                createdAt: serverTimestamp()
+            })).id
+        };
 
     } catch (error) {
         throw error;
@@ -114,6 +118,26 @@ export const respondToRequest = async (requestId: string, accept: boolean, caret
 
     } catch (error) {
         console.error("Error responding to request:", error);
+        throw error;
+    }
+};
+
+export const removeConnection = async (caretakerId: string, elderId: string) => {
+    console.log(`[removeConnection] Attempting to remove connection. Caretaker: ${caretakerId}, Elder: ${elderId}`);
+    try {
+        const caretakerRef = doc(db, "users", caretakerId);
+        await updateDoc(caretakerRef, {
+            linkedElders: arrayRemove(elderId)
+        });
+        console.log(`[removeConnection] Removed elder ${elderId} from caretaker ${caretakerId}`);
+
+        const elderRef = doc(db, "users", elderId);
+        await updateDoc(elderRef, {
+            linkedCaretakers: arrayRemove(caretakerId)
+        });
+        console.log(`[removeConnection] Removed caretaker ${caretakerId} from elder ${elderId}`);
+    } catch (error) {
+        console.error("Error removing connection:", error);
         throw error;
     }
 };

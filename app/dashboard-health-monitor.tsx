@@ -12,6 +12,7 @@ export default function HealthMonitorDashboardScreen() {
     const [meds, setMeds] = useState<Medication[]>([]);
     const [vitals, setVitals] = useState<Vital[]>([]);
     const [loading, setLoading] = useState(true);
+    const [elderName, setElderName] = useState('Elder');
 
     useEffect(() => {
         const fetchData = async () => {
@@ -27,9 +28,17 @@ export default function HealthMonitorDashboardScreen() {
                 if (linkedElders.length > 0) {
                     const targetElderId = linkedElders[0];
 
+                    // Fetch Elder Name
+                    const elderDocRef = doc(db, "users", targetElderId);
+                    const elderDocSnap = await getDoc(elderDocRef);
+                    if (elderDocSnap.exists()) {
+                        setElderName(elderDocSnap.data().name || "Elder");
+                    }
+
                     // Subscribe to Meds
                     const unsubMeds = getMedicationsRealtime(targetElderId, (fetchedMeds) => {
-                        setMeds(fetchedMeds);
+                        const activeMeds = fetchedMeds.filter(med => med.status !== 'Taken');
+                        setMeds(activeMeds);
                     });
 
                     // Subscribe to Vitals
@@ -62,7 +71,7 @@ export default function HealthMonitorDashboardScreen() {
                     <Text style={styles.backText}>Back</Text>
                 </TouchableOpacity>
                 <Text style={styles.headerTitle}>Health Monitor</Text>
-                <Text style={styles.headerSubtitle}>Lola Maria's Health Status</Text>
+                <Text style={styles.headerSubtitle}>{elderName}'s Health Status</Text>
             </View>
 
             {/* Today's Vitals Card */}

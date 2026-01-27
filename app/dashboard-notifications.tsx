@@ -130,7 +130,12 @@ export default function NotificationsDashboardScreen() {
                     <Text style={styles.sectionTitle}>Recent Activity</Text>
 
                     {notifications.length === 0 && (
-                        <Text style={styles.emptyText}>No new notifications.</Text>
+                        <View>
+                            <Text style={styles.emptyText}>No new notifications.</Text>
+                            <Text style={[styles.emptyText, { fontSize: 10, marginTop: 5 }]}>
+                                Debug ID: {auth.currentUser?.uid}
+                            </Text>
+                        </View>
                     )}
 
                     {notifications.map((notif) => (

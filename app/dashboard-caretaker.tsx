@@ -2,16 +2,12 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { doc, getDoc } from 'firebase/firestore';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { auth, db } from '../configs/firebase';
 import { logoutUser } from '../services/auth';
-import { sendConnectionRequest } from '../services/connection';
 
 export default function DashboardCaretakerScreen() {
     const router = useRouter();
-    const [modalVisible, setModalVisible] = useState(false);
-    const [elderName, setElderName] = useState('');
-    const [loading, setLoading] = useState(false);
     const [userName, setUserName] = useState('');
 
     useEffect(() => {
@@ -30,30 +26,6 @@ export default function DashboardCaretakerScreen() {
     const handleLogout = async () => {
         await logoutUser();
         router.replace('/');
-    };
-
-    const handleAddElder = async () => {
-        if (!elderName.trim()) {
-            Alert.alert("Error", "Please enter the Elder's name.");
-            return;
-        }
-
-        if (!auth.currentUser) {
-            Alert.alert("Error", "You are not logged in.");
-            return;
-        }
-
-        setLoading(true);
-        try {
-            await sendConnectionRequest(elderName.trim(), auth.currentUser.uid, userName);
-            Alert.alert("Success", "Connection request sent!", [
-                { text: "OK", onPress: () => { setModalVisible(false); setElderName(''); } }
-            ]);
-        } catch (error: any) {
-            Alert.alert("Failed", error.message);
-        } finally {
-            setLoading(false);
-        }
     };
 
     return (
@@ -94,14 +66,14 @@ export default function DashboardCaretakerScreen() {
                     </View>
                 </View>
 
-                {/* Add Elder Button - NEW */}
-                <TouchableOpacity style={[styles.card, { backgroundColor: '#e879f9' }]} onPress={() => setModalVisible(true)}>
+                {/* My Elder Card - UPDATED */}
+                <TouchableOpacity style={[styles.card, { backgroundColor: '#e879f9' }]} onPress={() => router.push('/caretaker-elder')}>
                     <View style={styles.iconCircle}>
-                        <Ionicons name="person-add-outline" size={30} color="#fff" />
+                        <Ionicons name="person-outline" size={30} color="#fff" />
                     </View>
                     <View>
-                        <Text style={styles.cardTitleWhite}>Add Elder</Text>
-                        <Text style={styles.cardSubtitleWhite}>Connect to a new senior</Text>
+                        <Text style={styles.cardTitleWhite}>My Elder</Text>
+                        <Text style={styles.cardSubtitleWhite}>Manage connection</Text>
                     </View>
                 </TouchableOpacity>
 
@@ -141,51 +113,6 @@ export default function DashboardCaretakerScreen() {
                 </View>
 
             </ScrollView>
-
-            {/* Add Elder Modal */}
-            <Modal
-                animationType="slide"
-                transparent={true}
-                visible={modalVisible}
-                onRequestClose={() => setModalVisible(false)}
-            >
-                <View style={styles.modalOverlay}>
-                    <View style={styles.modalContent}>
-                        <Text style={styles.modalTitle}>Connect to Elder</Text>
-                        <Text style={styles.modalSubtitle}>Enter the EXACT name of the senior as registered.</Text>
-
-                        <Text style={styles.inputLabel}>Elder's Name</Text>
-                        <TextInput
-                            style={styles.input}
-                            placeholder="e.g., Lolo Moises"
-                            value={elderName}
-                            onChangeText={setElderName}
-                            autoCapitalize="words"
-                        />
-
-                        <View style={styles.modalButtons}>
-                            <TouchableOpacity
-                                style={[styles.button, styles.cancelButton]}
-                                onPress={() => setModalVisible(false)}
-                            >
-                                <Text style={styles.cancelButtonText}>Cancel</Text>
-                            </TouchableOpacity>
-
-                            <TouchableOpacity
-                                style={[styles.button, styles.sendButton]}
-                                onPress={handleAddElder}
-                                disabled={loading}
-                            >
-                                {loading ? (
-                                    <ActivityIndicator color="#fff" />
-                                ) : (
-                                    <Text style={styles.sendButtonText}>Send Request</Text>
-                                )}
-                            </TouchableOpacity>
-                        </View>
-                    </View>
-                </View>
-            </Modal>
         </View>
     );
 }

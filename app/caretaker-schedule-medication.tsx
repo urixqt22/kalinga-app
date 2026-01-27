@@ -43,7 +43,7 @@ export default function CaretakerScheduleMedicationScreen() {
                 <View style={styles.listContainer}>
                     <View style={styles.listHeader}>
                         <MaterialCommunityIcons name="pill" size={24} color="#a855f7" />
-                        <Text style={styles.listTitle}>Medication Schedule</Text>
+                        <Text style={styles.listTitle}>Medication Logs</Text>
                     </View>
 
                     {medList.map((med) => (

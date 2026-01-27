@@ -1,10 +1,12 @@
 import {
     addDoc,
     collection,
+    doc,
     onSnapshot,
     query,
     serverTimestamp,
     Timestamp,
+    updateDoc,
     where
 } from "firebase/firestore";
 import { db } from "../configs/firebase";
@@ -69,10 +71,19 @@ export const getMedicationsRealtime = (elderId: string, callback: (meds: Medicat
         snapshot.forEach((doc) => {
             meds.push({ id: doc.id, ...doc.data() } as Medication);
         });
-
-        // Manual sort by time string if simple orderBy doesn't work well with "HH:mm AM/PM"
-        // For MVP, simplistic sort or just returning is fine. 
-        // Let's try to sort loosely by simple string comparison or leave it to UI.
         callback(meds);
     });
+};
+
+export const updateMedicationStatus = async (medicationId: string, status: 'Taken' | 'Skipped' | 'Scheduled') => {
+    try {
+        const medRef = doc(db, "medications", medicationId);
+        await updateDoc(medRef, {
+            status: status
+        });
+        return { success: true };
+    } catch (error) {
+        console.error("Error updating medication status:", error);
+        throw error;
+    }
 };

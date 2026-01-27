@@ -1,29 +1,87 @@
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import { ActivityIndicator, Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { auth } from '../configs/firebase';
+import { addFamilyContact, deleteFamilyContact, FamilyContact, getFamilyContactsRealtime } from '../services/family';
 
 export default function PamilyaDashboardScreen() {
     const router = useRouter();
     const { role } = useLocalSearchParams();
     const isCaretaker = role === 'caretaker';
+    const themeColor = isCaretaker ? '#a855f7' : '#3b82f6';
+    const textColor = isCaretaker ? '#6b21a8' : '#1e3a8a';
 
-    const themeColor = isCaretaker ? '#a855f7' : '#3b82f6'; // Purple for Caretaker, Blue for Senior
+    // State
+    const [contacts, setContacts] = useState<FamilyContact[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [modalVisible, setModalVisible] = useState(false);
 
-    const FamilyCard = ({ name, relation, status, isOnline }: { name: string, relation: string, status: string, isOnline: boolean }) => (
+    // Form State
+    const [newName, setNewName] = useState('');
+    const [newRelation, setNewRelation] = useState('');
+    const [newPhone, setNewPhone] = useState('');
+    const [adding, setAdding] = useState(false);
+
+    useEffect(() => {
+        if (!auth.currentUser) return;
+
+        const unsubscribe = getFamilyContactsRealtime(auth.currentUser.uid, (fetchedContacts) => {
+            setContacts(fetchedContacts);
+            setLoading(false);
+        });
+
+        return () => unsubscribe();
+    }, []);
+
+    const handleAddContact = async () => {
+        if (!newName.trim() || !newRelation.trim() || !newPhone.trim()) {
+            alert("Please fill in all fields.");
+            return;
+        }
+
+        if (!auth.currentUser) return;
+
+        setAdding(true);
+        try {
+            await addFamilyContact(auth.currentUser.uid, newName, newRelation, newPhone);
+            setModalVisible(false);
+            setNewName('');
+            setNewRelation('');
+            setNewPhone('');
+        } catch (error) {
+            alert("Failed to add contact.");
+        } finally {
+            setAdding(false);
+        }
+    };
+
+    const handleDelete = async (id: string) => {
+        if (!auth.currentUser) return;
+        try {
+            await deleteFamilyContact(auth.currentUser.uid, id);
+        } catch (error) {
+            console.error(error);
+        }
+    }
+
+    const FamilyCard = ({ contact }: { contact: FamilyContact }) => (
         <View style={styles.card}>
             <View style={styles.cardHeader}>
                 <View style={[styles.avatarCircle, { backgroundColor: isCaretaker ? '#f3e8ff' : '#dbeafe' }]}>
-                    {/* Placeholder for avatar, using icon for now or just initials if image were available */}
                     <MaterialCommunityIcons name="face-man-profile" size={30} color={themeColor} />
-                    {/* In a real app we'd use <Image /> */}
                 </View>
-                <View>
-                    <Text style={[styles.nameText, { color: isCaretaker ? '#6b21a8' : '#1e3a8a' }]}>{name} <Text style={styles.relationText}>({relation})</Text></Text>
+                <View style={{ flex: 1 }}>
+                    <Text style={[styles.nameText, { color: textColor }]}>{contact.name} <Text style={styles.relationText}>({contact.relationship})</Text></Text>
                     <View style={styles.statusContainer}>
-                        <View style={[styles.statusDot, { backgroundColor: isOnline ? '#22c55e' : '#94a3b8' }]} />
-                        <Text style={styles.statusText}>{status}</Text>
+                        <View style={[styles.statusDot, { backgroundColor: contact.isOnline ? '#22c55e' : '#94a3b8' }]} />
+                        <Text style={styles.statusText}>{contact.isOnline ? 'Available' : 'Offline'}</Text>
                     </View>
                 </View>
+                {/* Delete Option (Tiny x) */}
+                <TouchableOpacity onPress={() => handleDelete(contact.id)} style={{ padding: 5 }}>
+                    <Ionicons name="close" size={16} color="#94a3b8" />
+                </TouchableOpacity>
             </View>
 
             <View style={styles.actionsContainer}>
@@ -37,7 +95,7 @@ export default function PamilyaDashboardScreen() {
                     <Text style={styles.actionText}>Video</Text>
                 </TouchableOpacity>
 
-                <TouchableOpacity style={[styles.actionButton, { backgroundColor: '#a855f7' }]}>
+                <TouchableOpacity style={[styles.actionButton, { backgroundColor: themeColor }]}>
                     <Ionicons name="chatbubble-ellipses-outline" size={20} color="#fff" />
                     <Text style={styles.actionText}>Chat</Text>
                 </TouchableOpacity>
@@ -55,24 +113,40 @@ export default function PamilyaDashboardScreen() {
                             <Ionicons name="arrow-back" size={24} color="#fff" />
                             <Text style={styles.backText}>Bumalik</Text>
                         </TouchableOpacity>
-                        <TouchableOpacity>
-                            <Ionicons name="help-circle-outline" size={28} color="#fff" />
+                        <TouchableOpacity onPress={() => setModalVisible(true)}>
+                            <Ionicons name="person-add" size={24} color="#fff" />
                         </TouchableOpacity>
                     </View>
                     <Text style={styles.headerTitle}>Pamilya</Text>
                     <Text style={styles.headerSubtitle}>{isCaretaker ? 'Family Communication - Caretaker' : 'Family Communication'}</Text>
                 </View>
 
-                {/* Family Members */}
+                {/* Family Members List */}
                 <View style={styles.listContainer}>
-                    <FamilyCard name="Maria" relation="Anak" status="Available" isOnline={true} />
-                    <FamilyCard name="Juan" relation="Apo" status="Available" isOnline={true} />
-                    <FamilyCard name="Rosa" relation="Kapatid" status="Offline" isOnline={false} />
+                    {loading ? (
+                        <ActivityIndicator size="large" color={themeColor} />
+                    ) : (
+                        <>
+                            {contacts.length === 0 ? (
+                                <View style={styles.emptyState}>
+                                    <MaterialCommunityIcons name="account-group-outline" size={60} color="#ccc" />
+                                    <Text style={styles.emptyText}>No family members added yet.</Text>
+                                    <TouchableOpacity style={[styles.addButton, { backgroundColor: themeColor }]} onPress={() => setModalVisible(true)}>
+                                        <Text style={styles.addButtonText}>Add Member</Text>
+                                    </TouchableOpacity>
+                                </View>
+                            ) : (
+                                contacts.map((contact) => (
+                                    <FamilyCard key={contact.id} contact={contact} />
+                                ))
+                            )}
+                        </>
+                    )}
                 </View>
 
             </ScrollView>
 
-            {/* Footer Buttons (Fixed at bottom) */}
+            {/* Footer Buttons */}
             <View style={styles.footer}>
                 <TouchableOpacity style={styles.emergencyButton}>
                     <Ionicons name="call" size={24} color="#fff" style={{ marginRight: 10 }} />
@@ -83,6 +157,58 @@ export default function PamilyaDashboardScreen() {
                     <Ionicons name="mic" size={28} color="#fff" />
                 </TouchableOpacity>
             </View>
+
+            {/* Add Contact Modal */}
+            <Modal
+                animationType="slide"
+                transparent={true}
+                visible={modalVisible}
+                onRequestClose={() => setModalVisible(false)}
+            >
+                <View style={styles.modalOverlay}>
+                    <View style={styles.modalContent}>
+                        <Text style={[styles.modalTitle, { color: themeColor }]}>Add Family Member</Text>
+
+                        <Text style={styles.label}>Name</Text>
+                        <TextInput
+                            style={styles.input}
+                            placeholder="e.g. Maria"
+                            value={newName}
+                            onChangeText={setNewName}
+                        />
+
+                        <Text style={styles.label}>Relationship (e.g. Anak, Apo)</Text>
+                        <TextInput
+                            style={styles.input}
+                            placeholder="e.g. Anak"
+                            value={newRelation}
+                            onChangeText={setNewRelation}
+                        />
+
+                        <Text style={styles.label}>Phone Number</Text>
+                        <TextInput
+                            style={styles.input}
+                            placeholder="0917..."
+                            keyboardType="phone-pad"
+                            value={newPhone}
+                            onChangeText={setNewPhone}
+                        />
+
+                        <View style={styles.modalButtons}>
+                            <TouchableOpacity style={styles.cancelButton} onPress={() => setModalVisible(false)}>
+                                <Text style={styles.cancelButtonText}>Cancel</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                style={[styles.saveButton, { backgroundColor: themeColor }]}
+                                onPress={handleAddContact}
+                                disabled={adding}
+                            >
+                                {adding ? <ActivityIndicator color="#fff" /> : <Text style={styles.saveButtonText}>Save</Text>}
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </View>
+            </Modal>
         </View>
     );
 }
@@ -96,7 +222,6 @@ const styles = StyleSheet.create({
         paddingBottom: 100, // Space for footer
     },
     header: {
-        backgroundColor: '#3b82f6',
         paddingTop: 60,
         paddingHorizontal: 20,
         paddingBottom: 30,
@@ -148,7 +273,6 @@ const styles = StyleSheet.create({
         width: 50,
         height: 50,
         borderRadius: 25,
-        backgroundColor: '#dbeafe', // Placeholder color
         justifyContent: 'center',
         alignItems: 'center',
         marginRight: 15,
@@ -156,7 +280,6 @@ const styles = StyleSheet.create({
     nameText: {
         fontSize: 18,
         fontWeight: 'bold',
-        color: '#1e3a8a',
     },
     relationText: {
         fontSize: 16,
@@ -189,12 +312,13 @@ const styles = StyleSheet.create({
         borderRadius: 12,
         justifyContent: 'center',
         alignItems: 'center',
+        flexDirection: 'row',
+        gap: 5,
     },
     actionText: {
         color: '#fff',
         fontSize: 12,
         fontWeight: 'bold',
-        marginTop: 2,
     },
     footer: {
         position: 'absolute',
@@ -205,7 +329,6 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         gap: 15,
-        backgroundColor: 'transparent', // Or white if you want a background behind buttons
     },
     emergencyButton: {
         flex: 1,
@@ -230,5 +353,87 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         elevation: 5,
+    },
+    // Modal Styles
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0,0,0,0.5)',
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: 20,
+    },
+    modalContent: {
+        backgroundColor: '#fff',
+        borderRadius: 20,
+        padding: 25,
+        width: '100%',
+        maxWidth: 350,
+        elevation: 5,
+    },
+    modalTitle: {
+        fontSize: 20,
+        fontWeight: 'bold',
+        marginBottom: 20,
+        textAlign: 'center',
+    },
+    label: {
+        fontSize: 14,
+        color: '#64748b',
+        marginBottom: 5,
+        fontWeight: '600',
+    },
+    input: {
+        backgroundColor: '#f1f5f9',
+        borderRadius: 12,
+        padding: 12,
+        marginBottom: 15,
+        fontSize: 16,
+        color: '#1e293b',
+    },
+    modalButtons: {
+        flexDirection: 'row',
+        gap: 15,
+        marginTop: 10,
+    },
+    cancelButton: {
+        flex: 1,
+        paddingVertical: 12,
+        borderRadius: 12,
+        backgroundColor: '#f1f5f9',
+        alignItems: 'center',
+    },
+    cancelButtonText: {
+        color: '#64748b',
+        fontWeight: 'bold',
+    },
+    saveButton: {
+        flex: 1,
+        paddingVertical: 12,
+        borderRadius: 12,
+        alignItems: 'center',
+    },
+    saveButtonText: {
+        color: '#fff',
+        fontWeight: 'bold',
+    },
+    // Empty State
+    emptyState: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingVertical: 50,
+        gap: 15,
+    },
+    emptyText: {
+        color: '#94a3b8',
+        fontSize: 16,
+    },
+    addButton: {
+        paddingVertical: 12,
+        paddingHorizontal: 25,
+        borderRadius: 25,
+    },
+    addButtonText: {
+        color: '#fff',
+        fontWeight: 'bold',
     },
 });
