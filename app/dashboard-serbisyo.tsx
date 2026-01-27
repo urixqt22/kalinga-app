@@ -21,7 +21,7 @@ export default function SerbisyoDashboardScreen() {
             <View style={styles.listContainer}>
 
                 {/* SSS */}
-                <TouchableOpacity style={styles.serviceCard}>
+                <TouchableOpacity style={styles.serviceCard} onPress={() => router.push('/sss-pension')}>
                     <View style={styles.iconBox}>
                         <Ionicons name="card-outline" size={24} color="#2563eb" />
                     </View>
