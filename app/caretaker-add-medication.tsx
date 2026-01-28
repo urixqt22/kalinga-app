@@ -1,9 +1,8 @@
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
-import DateTimePicker from '@react-native-community/datetimepicker';
 import { useRouter } from 'expo-router';
 import { doc, getDoc } from 'firebase/firestore';
 import { useState } from 'react';
-import { ActivityIndicator, Alert, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Alert, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { auth, db } from '../configs/firebase';
 import { addMedicationToFirestore } from '../services/medication';
 
@@ -15,28 +14,6 @@ export default function CaretakerAddMedicationScreen() {
 
     // Time Picker State
     const [time, setTime] = useState('');
-    const [date, setDate] = useState(new Date());
-    const [showPicker, setShowPicker] = useState(false);
-
-    const onChange = (event: any, selectedDate?: Date) => {
-        if (selectedDate) {
-            setDate(selectedDate);
-            // Format time manually to string "8:00 AM"
-            let hours = selectedDate.getHours();
-            const minutes = selectedDate.getMinutes();
-            const ampm = hours >= 12 ? 'PM' : 'AM';
-            hours = hours % 12;
-            hours = hours ? hours : 12;
-            const minutesStr = minutes < 10 ? '0' + minutes : minutes;
-            const strTime = `${hours}:${minutesStr} ${ampm}`;
-
-            setTime(strTime);
-        }
-
-        if (Platform.OS === 'android') {
-            setShowPicker(false);
-        }
-    };
 
     const handleSave = async () => {
         if (!name || !dosage || !time) {
@@ -75,9 +52,8 @@ export default function CaretakerAddMedicationScreen() {
                     time
                 });
 
-                Alert.alert("Success", "Medication scheduled successfully!", [
-                    { text: "OK", onPress: () => router.back() }
-                ]);
+                Alert.alert("Success", "Medication scheduled successfully!");
+                router.back();
             }
         } catch (error: any) {
             Alert.alert("Error", error.message);
@@ -129,33 +105,13 @@ export default function CaretakerAddMedicationScreen() {
 
                     <View style={styles.formGroup}>
                         <Text style={styles.label}>Intake Time</Text>
-                        {/* Time Picker Trigger */}
-                        <TouchableOpacity onPress={() => setShowPicker(!showPicker)}>
-                            <View style={[styles.input, { justifyContent: 'center' }]}>
-                                <Text style={{ color: time ? '#1f2937' : '#9ca3af', fontSize: 16 }}>
-                                    {time || "Select time"}
-                                </Text>
-                            </View>
-                        </TouchableOpacity>
-
-                        {showPicker && (
-                            <View style={styles.pickerContainer}>
-                                <DateTimePicker
-                                    testID="dateTimePicker"
-                                    value={date}
-                                    mode="time"
-                                    is24Hour={false}
-                                    display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                                    onChange={onChange}
-                                    style={styles.picker}
-                                />
-                                {Platform.OS === 'ios' && (
-                                    <TouchableOpacity style={styles.confirmPicker} onPress={() => setShowPicker(false)}>
-                                        <Text style={{ color: '#a855f7', fontWeight: 'bold' }}>Done</Text>
-                                    </TouchableOpacity>
-                                )}
-                            </View>
-                        )}
+                        <TextInput
+                            style={styles.input}
+                            placeholderTextColor="#9ca3af"
+                            placeholder="e.g. 8:00 AM"
+                            value={time}
+                            onChangeText={setTime}
+                        />
                     </View>
 
                 </View>
@@ -251,20 +207,7 @@ const styles = StyleSheet.create({
         color: '#1f2937',
         height: 55, // Fixed height for consistency
     },
-    pickerContainer: {
-        marginTop: 10,
-        alignItems: 'center',
-        backgroundColor: '#f3e8ff',
-        borderRadius: 10,
-        padding: 10,
-    },
-    picker: {
-        width: '100%',
-    },
-    confirmPicker: {
-        marginTop: 10,
-        padding: 10,
-    },
+
     scheduleButton: {
         backgroundColor: '#a855f7',
         paddingVertical: 15,

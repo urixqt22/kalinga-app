@@ -1,10 +1,14 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { auth } from '../configs/firebase';
 import { logoutUser } from '../services/auth';
+
+import { useSettings } from '../contexts/SettingsContext';
 
 export default function DashboardSeniorScreen() {
     const router = useRouter();
+    const { getFontSize } = useSettings();
 
     const handleLogout = async () => {
         await logoutUser();
@@ -17,9 +21,12 @@ export default function DashboardSeniorScreen() {
             <View style={styles.header}>
                 <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
                     <Ionicons name="log-out-outline" size={20} color="#2563eb" />
-                    <Text style={styles.logoutText}>Logout</Text>
+                    <Text style={[styles.logoutText, { fontSize: getFontSize(14) }]}>Logout</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.notificationContainer} onPress={() => router.push('/dashboard-notifications')}>
+                <TouchableOpacity
+                    style={styles.notificationContainer}
+                    onPress={() => router.push('/dashboard-notifications-senior')}
+                >
                     <Ionicons name="notifications" size={30} color="#2563eb" />
                     <View style={styles.notificationBadge} />
                 </TouchableOpacity>
@@ -33,8 +40,9 @@ export default function DashboardSeniorScreen() {
                         <Ionicons name="happy" size={24} color="#2563eb" />
                     </View>
                 </View>
-                <Text style={styles.appName}>KALINGA</Text>
-                <Text style={styles.greeting}>Mabuhay, Lolo Moises</Text>
+                <Text style={[styles.appName, { fontSize: getFontSize(22) }]}>KALINGA</Text>
+                <Text style={[styles.greeting, { fontSize: getFontSize(14) }]}>Mabuhay, Lolo Moises</Text>
+                <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: getFontSize(12), marginTop: 2 }} selectable>ID: {auth.currentUser?.uid}</Text>
             </View>
 
             {/* Menu Buttons */}
@@ -43,7 +51,7 @@ export default function DashboardSeniorScreen() {
                     <View style={styles.menuIconCircle}>
                         <Ionicons name="heart-outline" size={30} color="#fff" />
                     </View>
-                    <Text style={styles.menuText}>Kalusugan</Text>
+                    <Text style={[styles.menuText, { fontSize: getFontSize(18) }]}>Kalusugan</Text>
                     <Ionicons name="chevron-forward" size={24} color="#fff" />
                 </TouchableOpacity>
 
@@ -51,7 +59,7 @@ export default function DashboardSeniorScreen() {
                     <View style={styles.menuIconCircle}>
                         <Ionicons name="newspaper-outline" size={30} color="#fff" />
                     </View>
-                    <Text style={styles.menuText}>Serbisyo ng Gobyerno</Text>
+                    <Text style={[styles.menuText, { fontSize: getFontSize(18) }]}>Serbisyo ng Gobyerno</Text>
                     <Ionicons name="chevron-forward" size={24} color="#fff" />
                 </TouchableOpacity>
 
@@ -59,10 +67,11 @@ export default function DashboardSeniorScreen() {
                     <View style={styles.menuIconCircle}>
                         <Ionicons name="people-outline" size={30} color="#fff" />
                     </View>
-                    <Text style={styles.menuText}>Pamilya</Text>
+                    <Text style={[styles.menuText, { fontSize: getFontSize(18) }]}>Pamilya</Text>
                     <Ionicons name="chevron-forward" size={24} color="#fff" />
                 </TouchableOpacity>
             </View>
+
 
             {/* Footer Controls */}
             <View style={styles.footerControls}>

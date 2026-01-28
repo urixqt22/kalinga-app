@@ -38,7 +38,7 @@ export default function DashboardCaretakerScreen() {
                         <Text style={styles.logoutText}>Logout</Text>
                     </TouchableOpacity>
                     <View style={styles.headerRight}>
-                        <TouchableOpacity onPress={() => router.push({ pathname: '/dashboard-notifications', params: { role: 'caretaker' } })}>
+                        <TouchableOpacity onPress={() => router.push('/dashboard-notifications-caretaker')}>
                             <Ionicons name="notifications" size={30} color="#a855f7" />
                             {/* Notification Dot Indicator */}
                             <View style={styles.notificationBadge} />
@@ -51,7 +51,7 @@ export default function DashboardCaretakerScreen() {
                     <View style={styles.avatarCircle}>
                         <Ionicons name="person" size={50} color="#fff" />
                     </View>
-                    <Text style={styles.roleTitle}>Caretaker Dashboard</Text>
+                    <Text style={styles.roleTitle}>Mabuhay, {userName || "Caretaker"}</Text>
                     <Text style={styles.monitoringText}>Monitoring Patients</Text>
                 </View>
 

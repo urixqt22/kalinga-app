@@ -77,23 +77,27 @@ export default function CaretakerAddReadingScreen() {
                 <View style={styles.inputGroup}>
                     <Text style={styles.label}>Blood Pressure</Text>
                     <View style={styles.row}>
-                        <TextInput
-                            style={[styles.input, styles.halfInput]}
-                            placeholder="Systolic (e.g. 120)"
-                            keyboardType="numeric"
-                            placeholderTextColor="#9ca3af"
-                            value={systolic}
-                            onChangeText={setSystolic}
-                        />
+                        <View style={styles.halfColumn}>
+                            <TextInput
+                                style={styles.input}
+                                placeholder="Systolic (120)"
+                                keyboardType="numeric"
+                                placeholderTextColor="#9ca3af"
+                                value={systolic}
+                                onChangeText={setSystolic}
+                            />
+                        </View>
                         <Text style={styles.separator}>/</Text>
-                        <TextInput
-                            style={[styles.input, styles.halfInput]}
-                            placeholder="Diastolic (e.g. 80)"
-                            keyboardType="numeric"
-                            placeholderTextColor="#9ca3af"
-                            value={diastolic}
-                            onChangeText={setDiastolic}
-                        />
+                        <View style={styles.halfColumn}>
+                            <TextInput
+                                style={styles.input}
+                                placeholder="Diastolic (80)"
+                                keyboardType="numeric"
+                                placeholderTextColor="#9ca3af"
+                                value={diastolic}
+                                onChangeText={setDiastolic}
+                            />
+                        </View>
                     </View>
                 </View>
 
@@ -174,21 +178,23 @@ const styles = StyleSheet.create({
     },
     input: {
         backgroundColor: '#f3f4f6',
-        padding: 15,
+        padding: 12,
         borderRadius: 15,
         fontSize: 16,
         color: '#1f2937',
+        width: '100%', // Ensure input fills its wrapper
     },
     row: {
+        width: '100%',
         flexDirection: 'row',
         alignItems: 'center',
         gap: 10,
     },
-    halfInput: {
-        flex: 1,
+    halfColumn: {
+        flex: 1, // The container flexes, not the input directly
     },
     separator: {
-        fontSize: 24,
+        fontSize: 20,
         color: '#9ca3af',
         fontWeight: 'bold',
     },

@@ -135,6 +135,7 @@ export default function MyElderScreen() {
                     <View style={styles.connectedContainer}>
                         <Text style={styles.statusTitle}>Connected to</Text>
                         <Text style={styles.elderName}>{elderName}</Text>
+                        <Text style={{ fontSize: 12, color: '#9ca3af', marginBottom: 5 }} selectable>ID: {linkedElderId}</Text>
                         <Text style={styles.statusSubtitle}>You are currently monitoring this elder.</Text>
 
                         {/* Two-step Confirmation UI */}
@@ -185,7 +186,7 @@ export default function MyElderScreen() {
                         <Text style={styles.label}>Elder's Name</Text>
                         <TextInput
                             style={styles.input}
-                            placeholder="e.g. Lolo Moises"
+                            placeholder="e.g. Lolo Moises or User ID"
                             value={searchName}
                             onChangeText={setSearchName}
                         />

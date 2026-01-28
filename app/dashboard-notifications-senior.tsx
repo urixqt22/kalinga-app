@@ -1,24 +1,21 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { auth } from '../configs/firebase';
 import { ConnectionRequest, getConnectionRequests, respondToRequest } from '../services/connection';
 import { AppNotification, getNotifications, markAsDone } from '../services/notification';
 
-export default function NotificationsDashboardScreen() {
+export default function SeniorNotificationsScreen() {
     const router = useRouter();
-    const { role } = useLocalSearchParams();
-    const isCaretaker = role === 'caretaker';
 
     // Connection Requests State
     const [requests, setRequests] = useState<ConnectionRequest[]>([]);
     // Generic Notifications State
     const [notifications, setNotifications] = useState<AppNotification[]>([]);
-
     const [loading, setLoading] = useState(true);
 
-    const themeColor = isCaretaker ? '#a855f7' : '#3b82f6'; // Purple for Caretaker, Blue for Senior
+    const themeColor = '#3b82f6'; // Blue for Senior
 
     useEffect(() => {
         if (!auth.currentUser) {
@@ -28,16 +25,12 @@ export default function NotificationsDashboardScreen() {
 
         const userId = auth.currentUser.uid;
 
-        // 1. Subscribe to Connection Requests (Only if Senior? Or both depending on future features)
-        // Currently only Senior receives connection requests
-        let unsubscribeRequests = () => { };
-        if (!isCaretaker) {
-            unsubscribeRequests = getConnectionRequests(userId, (fetchedRequests) => {
-                setRequests(fetchedRequests);
-            });
-        }
+        // 1. Subscribe to Connection Requests (Only Senior receives these)
+        const unsubscribeRequests = getConnectionRequests(userId, (fetchedRequests) => {
+            setRequests(fetchedRequests);
+        });
 
-        // 2. Subscribe to Generic Notifications (Both roles could receive these)
+        // 2. Subscribe to Generic Notifications
         const unsubscribeNotifs = getNotifications(userId, (fetchedNotifs) => {
             setNotifications(fetchedNotifs);
             setLoading(false);
@@ -47,7 +40,7 @@ export default function NotificationsDashboardScreen() {
             unsubscribeRequests();
             unsubscribeNotifs();
         };
-    }, [isCaretaker]);
+    }, []);
 
     const handleConnectionResponse = async (request: ConnectionRequest, accept: boolean) => {
         try {
@@ -60,14 +53,11 @@ export default function NotificationsDashboardScreen() {
 
     const handleMarkAsDone = async (notif: AppNotification) => {
         try {
-            // If this notification has a sender (e.g. from Caretaker), and I am the Elder,
-            // I should notify them back that I saw it.
-            // Assumption: If I am Caretaker, I am just clearing my own alerts (like Acknowledgements).
-
+            // If this notification has a sender (e.g. from Caretaker), I should notify them back
             let replyToId = undefined;
             let replyMessage = undefined;
 
-            if (!isCaretaker && notif.senderId) {
+            if (notif.senderId) {
                 replyToId = notif.senderId;
                 replyMessage = `Elder has seen/completed: ${notif.title}`;
             }
@@ -86,14 +76,14 @@ export default function NotificationsDashboardScreen() {
                     <Ionicons name="arrow-back" size={24} color={themeColor} />
                     <Text style={[styles.backText, { color: themeColor }]}>Bumalik</Text>
                 </TouchableOpacity>
-                <Text style={[styles.headerTitle, { color: themeColor }]}>Notification</Text>
+                <Text style={[styles.headerTitle, { color: themeColor }]}>Notifications</Text>
             </View>
 
             {/* Notification List */}
             <View style={styles.listContainer}>
 
                 {/* Connection Requests Section */}
-                {!isCaretaker && requests.length > 0 && (
+                {requests.length > 0 && (
                     <View style={{ marginBottom: 20 }}>
                         <Text style={styles.sectionTitle}>Connection Requests</Text>
                         {requests.map((request) => (
@@ -132,9 +122,6 @@ export default function NotificationsDashboardScreen() {
                     {notifications.length === 0 && (
                         <View>
                             <Text style={styles.emptyText}>No new notifications.</Text>
-                            <Text style={[styles.emptyText, { fontSize: 10, marginTop: 5 }]}>
-                                Debug ID: {auth.currentUser?.uid}
-                            </Text>
                         </View>
                     )}
 
@@ -148,7 +135,7 @@ export default function NotificationsDashboardScreen() {
                                 <Text style={styles.notificationMessage}>{notif.message}</Text>
                             </View>
 
-                            {/* Done Button (X or Check) */}
+                            {/* Done Button */}
                             <TouchableOpacity onPress={() => handleMarkAsDone(notif)} style={styles.closeButton}>
                                 <Ionicons name="checkmark-circle" size={28} color="#fff" />
                                 <Text style={styles.doneText}>Done</Text>

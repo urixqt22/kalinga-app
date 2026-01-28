@@ -4,6 +4,7 @@ import {
     arrayUnion,
     collection,
     doc,
+    getDoc,
     getDocs,
     onSnapshot,
     query,
@@ -25,20 +26,28 @@ export interface ConnectionRequest {
 
 export const sendConnectionRequest = async (elderName: string, caretakerId: string, caretakerName: string) => {
     try {
-        // 1. Find the Elder by name
+        // 1. Try to find by ID first
         const usersRef = collection(db, "users");
-        // exact match for now, case sensitivity depends on how name is stored vs input
-        const q = query(usersRef, where("name", "==", elderName), where("role", "==", "SENIOR"));
-        const querySnapshot = await getDocs(q);
+        let elderId = null;
 
-        if (querySnapshot.empty) {
-            throw new Error(`No Elder found with the name "${elderName}".`);
+        // Check if input is a valid UID (check if doc exists)
+        const potentialDocRef = doc(db, "users", elderName);
+        const potentialDocSnap = await getDoc(potentialDocRef);
+
+        if (potentialDocSnap.exists() && potentialDocSnap.data().role === 'SENIOR') {
+            elderId = elderName;
+        } else {
+            // Fallback to Name search
+            const q = query(usersRef, where("name", "==", elderName), where("role", "==", "SENIOR"));
+            const querySnapshot = await getDocs(q);
+
+            if (querySnapshot.empty) {
+                throw new Error(`No Elder found with the name or ID "${elderName}".`);
+            }
+
+            // WARN: This picks the first one if duplicates exist.
+            elderId = querySnapshot.docs[0].id;
         }
-
-        // WARN: This picks the first one if duplicates exist. 
-        // Ideally we should ask for a unique ID or show a list to pick from.
-        const elderDoc = querySnapshot.docs[0];
-        const elderId = elderDoc.id;
 
         // 2. Check for existing pending request
         const requestsRef = collection(db, "connection_requests");
@@ -123,13 +132,11 @@ export const respondToRequest = async (requestId: string, accept: boolean, caret
 };
 
 export const removeConnection = async (caretakerId: string, elderId: string) => {
-    console.log(`[removeConnection] Attempting to remove connection. Caretaker: ${caretakerId}, Elder: ${elderId}`);
     try {
         const caretakerRef = doc(db, "users", caretakerId);
         await updateDoc(caretakerRef, {
             linkedElders: arrayRemove(elderId)
         });
-        console.log(`[removeConnection] Removed elder ${elderId} from caretaker ${caretakerId}`);
 
         const elderRef = doc(db, "users", elderId);
         await updateDoc(elderRef, {
