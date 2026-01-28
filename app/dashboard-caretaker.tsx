@@ -49,10 +49,14 @@ export default function DashboardCaretakerScreen() {
                 {/* Profile Section */}
                 <View style={styles.profileSection}>
                     <View style={styles.avatarCircle}>
-                        <Ionicons name="person" size={50} color="#fff" />
+                        <Ionicons name="heart" size={50} color="#fff" />
+                        <View style={styles.iconBadge}>
+                            <Ionicons name="person" size={24} color="#a855f7" />
+                        </View>
                     </View>
+                    <Text style={styles.appName}>KALINGA</Text>
                     <Text style={styles.roleTitle}>Mabuhay, {userName || "Caretaker"}</Text>
-                    <Text style={styles.monitoringText}>Monitoring Patients</Text>
+                    {/* <Text style={styles.monitoringText}>Monitoring Patients</Text> */}
                 </View>
 
                 {/* Status Card */}
@@ -157,9 +161,23 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         marginBottom: 10,
     },
+    iconBadge: {
+        position: 'absolute',
+        backgroundColor: '#fff',
+        borderRadius: 15,
+        padding: 2,
+        bottom: 0,
+        right: 0,
+    },
+    appName: {
+        fontSize: 22,
+        fontWeight: '900',
+        color: '#a855f7', // Matching the purple theme
+        letterSpacing: 1,
+    },
     roleTitle: {
-        fontSize: 20,
-        fontWeight: 'bold',
+        fontSize: 16, // Reduced slightly to match "Mabuhay" subtitle style
+        // fontWeight: 'bold', 
         color: '#a855f7',
     },
     monitoringText: {

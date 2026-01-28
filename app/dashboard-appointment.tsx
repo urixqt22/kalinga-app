@@ -1,9 +1,29 @@
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import { ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { auth } from '../configs/firebase';
+import { Appointment, getAppointmentsRealtime } from '../services/appointment';
 
 export default function AppointmentDashboardScreen() {
     const router = useRouter();
+    const [appointments, setAppointments] = useState<Appointment[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        if (!auth.currentUser) return;
+
+        const unsubscribe = getAppointmentsRealtime(auth.currentUser.uid, (data) => {
+            setAppointments(data);
+            setLoading(false);
+        });
+
+        return () => unsubscribe();
+    }, []);
+
+    // Helper to separate Today vs Upcoming (simplified for now)
+    // In a real app, you'd parse proper Date objects.
+    const todayAppointments = appointments; // For now, show all here or filter logic needed
 
     return (
         <ScrollView contentContainerStyle={styles.container}>
@@ -17,76 +37,55 @@ export default function AppointmentDashboardScreen() {
                 <Text style={styles.headerSubtitle}>Doctor appointments</Text>
             </View>
 
-            {/* Notification Card */}
-            <View style={styles.notificationCard}>
-                <View style={styles.notificationIconCircle}>
-                    <Ionicons name="notifications" size={30} color="#fcfcfcff" />
+            {/* Notification Card (Latest Appointment) */}
+            {appointments.length > 0 && (
+                <View style={styles.notificationCard}>
+                    <View style={styles.notificationIconCircle}>
+                        <Ionicons name="notifications" size={30} color="#fcfcfcff" />
+                    </View>
+                    <View>
+                        <Text style={styles.notificationTitle}>Doctor visit today</Text>
+                        <Text style={styles.notificationSubtitle}>
+                            {appointments[0].time} - {appointments[0].doctorName}
+                        </Text>
+                    </View>
                 </View>
-                <View>
-                    <Text style={styles.notificationTitle}>Doctor visit today</Text>
-                    <Text style={styles.notificationSubtitle}>10:00 AM</Text>
-                </View>
-            </View>
+            )}
 
             <Text style={styles.sectionTitle}>Schedule</Text>
 
             {/* Schedule List */}
             <View style={styles.listContainer}>
+                {loading ? (
+                    <ActivityIndicator size="large" color="#3b82f6" />
+                ) : (
+                    <>
+                        {appointments.map((apt) => (
+                            <View key={apt.id} style={styles.scheduleCard}>
+                                <View style={styles.doctorIconBox}>
+                                    <MaterialCommunityIcons name="doctor" size={30} color="#3b82f6" />
+                                    <View style={styles.plusBadge}>
+                                        <Ionicons name="add" size={10} color="#fff" />
+                                    </View>
+                                </View>
+                                <View style={styles.scheduleContent}>
+                                    <Text style={styles.doctorName}>Doctor {apt.doctorName} visit.</Text>
+                                    <Text style={styles.visitTime}>{apt.time}</Text>
+                                    <View style={styles.dateContainer}>
+                                        <Text style={styles.visitDate}>{apt.date}</Text>
+                                        <Text style={styles.visitDay}>Upcoming</Text>
+                                    </View>
+                                </View>
+                            </View>
+                        ))}
 
-                {/* Item 1 */}
-                <View style={styles.scheduleCard}>
-                    <View style={styles.doctorIconBox}>
-                        <MaterialCommunityIcons name="doctor" size={30} color="#3b82f6" />
-                        <View style={styles.plusBadge}>
-                            <Ionicons name="add" size={10} color="#fff" />
-                        </View>
-                    </View>
-                    <View style={styles.scheduleContent}>
-                        <Text style={styles.doctorName}>Doctor Jorick visit.</Text>
-                        <Text style={styles.visitTime}>12:00 NN</Text>
-                        <View style={styles.dateContainer}>
-                            <Text style={styles.visitDate}>January 24, 2026</Text>
-                            <Text style={styles.visitDay}>Saturday</Text>
-                        </View>
-                    </View>
-                </View>
-
-                {/* Item 2 */}
-                <View style={styles.scheduleCard}>
-                    <View style={styles.doctorIconBox}>
-                        <MaterialCommunityIcons name="doctor" size={30} color="#3b82f6" />
-                        <View style={styles.plusBadge}>
-                            <Ionicons name="add" size={10} color="#fff" />
-                        </View>
-                    </View>
-                    <View style={styles.scheduleContent}>
-                        <Text style={styles.doctorName}>Doctor Jorick visit.</Text>
-                        <Text style={styles.visitTime}>12:00 NN</Text>
-                        <View style={styles.dateContainer}>
-                            <Text style={styles.visitDate}>January 24, 2026</Text>
-                            <Text style={styles.visitDay}>Saturday</Text>
-                        </View>
-                    </View>
-                </View>
-
-                {/* Item 3 */}
-                <View style={styles.scheduleCard}>
-                    <View style={styles.doctorIconBox}>
-                        <MaterialCommunityIcons name="doctor" size={30} color="#3b82f6" />
-                        <View style={styles.plusBadge}>
-                            <Ionicons name="add" size={10} color="#fff" />
-                        </View>
-                    </View>
-                    <View style={styles.scheduleContent}>
-                        <Text style={styles.doctorName}>Doctor Jorick visit.</Text>
-                        <Text style={styles.visitTime}>12:00 NN</Text>
-                        <View style={styles.dateContainer}>
-                            <Text style={styles.visitDate}>January 24, 2026</Text>
-                            <Text style={styles.visitDay}>Saturday</Text>
-                        </View>
-                    </View>
-                </View>
-
+                        {appointments.length === 0 && (
+                            <Text style={{ textAlign: 'center', color: '#64748b', marginTop: 20 }}>
+                                No appointments scheduled.
+                            </Text>
+                        )}
+                    </>
+                )}
             </View>
 
         </ScrollView>

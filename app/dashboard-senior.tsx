@@ -1,7 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { doc, getDoc } from 'firebase/firestore';
+import { useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { auth } from '../configs/firebase';
+import { auth, db } from '../configs/firebase';
 import { logoutUser } from '../services/auth';
 
 import { useSettings } from '../contexts/SettingsContext';
@@ -9,6 +11,19 @@ import { useSettings } from '../contexts/SettingsContext';
 export default function DashboardSeniorScreen() {
     const router = useRouter();
     const { getFontSize } = useSettings();
+    const [userName, setUserName] = useState('');
+
+    useEffect(() => {
+        const fetchUserName = async () => {
+            if (auth.currentUser) {
+                const userDoc = await getDoc(doc(db, "users", auth.currentUser.uid));
+                if (userDoc.exists()) {
+                    setUserName(userDoc.data().name);
+                }
+            }
+        };
+        fetchUserName();
+    }, []);
 
     const handleLogout = async () => {
         await logoutUser();
@@ -41,7 +56,7 @@ export default function DashboardSeniorScreen() {
                     </View>
                 </View>
                 <Text style={[styles.appName, { fontSize: getFontSize(22) }]}>KALINGA</Text>
-                <Text style={[styles.greeting, { fontSize: getFontSize(14) }]}>Mabuhay, Lolo Moises</Text>
+                <Text style={[styles.greeting, { fontSize: getFontSize(14) }]}>Mabuhay, {userName || 'Senior'}</Text>
                 <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: getFontSize(12), marginTop: 2 }} selectable>ID: {auth.currentUser?.uid}</Text>
             </View>
 
