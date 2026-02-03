@@ -76,7 +76,7 @@ export default function CaretakerScheduleAppointmentScreen() {
 
                 if (Platform.OS === 'web') {
                     alert("Appointment scheduled successfully!");
-                    router.push('/dashboard-health-monitor');
+                    router.replace('/dashboard-health-monitor');
                 } else {
                     Alert.alert(
                         "Success",
@@ -85,8 +85,8 @@ export default function CaretakerScheduleAppointmentScreen() {
                             {
                                 text: "OK",
                                 onPress: () => {
-                                    // Using push ensures we navigate forward to the dashboard
-                                    router.push('/dashboard-health-monitor');
+                                    // Using replace ensures we don't go back to the form
+                                    router.replace('/dashboard-health-monitor');
                                 }
                             }
                         ],

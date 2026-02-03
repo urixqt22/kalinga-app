@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { Alert, Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Image, Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { registerCaretaker } from '../services/auth';
 
 export default function RegisterCaretakerScreen() {
@@ -15,6 +15,12 @@ export default function RegisterCaretakerScreen() {
     const [gender, setGender] = useState('');
     const [validId, setValidId] = useState('');
     const [validIdImage, setValidIdImage] = useState<string | null>(null);
+    const [isLoading, setIsLoading] = useState(false);
+
+    // Modal State
+    const [modalVisible, setModalVisible] = useState(false);
+    const [modalType, setModalType] = useState<'success' | 'error'>('success');
+    const [modalMessage, setModalMessage] = useState('');
 
     const pickImage = async () => {
         let result = await ImagePicker.launchImageLibraryAsync({
@@ -30,13 +36,22 @@ export default function RegisterCaretakerScreen() {
         }
     };
 
+    const showModal = (type: 'success' | 'error', message: string) => {
+        setModalType(type);
+        setModalMessage(message);
+        setModalVisible(true);
+    };
 
-
-    const [isLoading, setIsLoading] = useState(false);
+    const handleModalClose = () => {
+        setModalVisible(false);
+        if (modalType === 'success') {
+            router.push('/welcome-caretaker');
+        }
+    };
 
     const handleRegister = async () => {
         if (password !== confirmPassword) {
-            Alert.alert("Error", "Passwords do not match");
+            showModal('error', "Passwords do not match");
             return;
         }
 
@@ -44,6 +59,7 @@ export default function RegisterCaretakerScreen() {
         setIsLoading(true);
 
         try {
+            // Standard/Predictable email generation
             const sanitizedEmail = name.replace(/\s+/g, '').toLowerCase() + "@placeholder.com";
             console.log("Attempting registration with email:", sanitizedEmail);
 
@@ -54,11 +70,13 @@ export default function RegisterCaretakerScreen() {
                 validIdStatus: validId
             });
 
-            Alert.alert("Success", "Account created successfully!", [
-                { text: "OK", onPress: () => router.push('/welcome-caretaker') }
-            ]);
+            setIsLoading(false);
+            showModal('success', "Account created successfully!");
+
         } catch (error: any) {
+            setIsLoading(false);
             console.error("Registration Error:", error);
+
             let errorMessage = error.message;
             if (error.code === 'auth/email-already-in-use') {
                 errorMessage = "This name is already registered. Please use a different name or login.";
@@ -67,14 +85,50 @@ export default function RegisterCaretakerScreen() {
             } else if (error.code === 'auth/invalid-email') {
                 errorMessage = "The generated email is invalid. Please check the name format.";
             }
-            Alert.alert("Registration Failed", errorMessage);
-        } finally {
-            setIsLoading(false);
+
+            showModal('error', errorMessage || "Registration failed.");
         }
     };
 
     return (
         <ScrollView contentContainerStyle={styles.container}>
+            {/* Loading Modal */}
+            <Modal transparent={true} animationType="fade" visible={isLoading}>
+                <View style={styles.loadingContainer}>
+                    <View style={styles.loadingBox}>
+                        <ActivityIndicator size="large" color="#a855f7" />
+                        <Text style={styles.loadingText}>Creating Account...</Text>
+                    </View>
+                </View>
+            </Modal>
+
+            {/* Custom Success/Error Modal */}
+            <Modal transparent={true} animationType="fade" visible={modalVisible} onRequestClose={handleModalClose}>
+                <View style={styles.modalOverlay}>
+                    <View style={styles.modalContent}>
+                        <View style={[styles.iconContainer, modalType === 'error' ? styles.errorIcon : styles.successIcon]}>
+                            <Ionicons
+                                name={modalType === 'success' ? "checkmark-circle" : "alert-circle"}
+                                size={50}
+                                color="#fff"
+                            />
+                        </View>
+                        <Text style={styles.modalTitle}>
+                            {modalType === 'success' ? 'Success!' : 'Registration Failed'}
+                        </Text>
+                        <Text style={styles.modalMessage}>{modalMessage}</Text>
+                        <TouchableOpacity
+                            style={[styles.modalButton, modalType === 'error' ? styles.errorButton : styles.successButton]}
+                            onPress={handleModalClose}
+                        >
+                            <Text style={styles.modalButtonText}>
+                                {modalType === 'success' ? 'Continue' : 'Try Again'}
+                            </Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+            </Modal>
+
             {/* Header */}
             <View style={styles.header}>
                 <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
@@ -267,5 +321,92 @@ const styles = StyleSheet.create({
     idImage: {
         width: '100%',
         height: '100%',
+    },
+    loadingContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'rgba(0,0,0,0.5)',
+    },
+    loadingBox: {
+        width: 150,
+        height: 120,
+        backgroundColor: 'white',
+        borderRadius: 10,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    loadingText: {
+        marginTop: 10,
+        fontSize: 14,
+        fontWeight: 'bold',
+        color: '#333',
+    },
+    modalOverlay: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    },
+    modalContent: {
+        width: '80%',
+        backgroundColor: 'white',
+        borderRadius: 20,
+        padding: 20,
+        alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: {
+            width: 0,
+            height: 2,
+        },
+        shadowOpacity: 0.25,
+        shadowRadius: 4,
+        elevation: 5,
+    },
+    iconContainer: {
+        width: 80,
+        height: 80,
+        borderRadius: 40,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginBottom: 15,
+        marginTop: -50,
+        elevation: 5,
+    },
+    successIcon: {
+        backgroundColor: '#22c55e', // Green
+    },
+    errorIcon: {
+        backgroundColor: '#ef4444', // Red
+    },
+    modalTitle: {
+        fontSize: 22,
+        fontWeight: 'bold',
+        marginBottom: 10,
+        textAlign: 'center',
+    },
+    modalMessage: {
+        fontSize: 16,
+        color: '#6b7280',
+        textAlign: 'center',
+        marginBottom: 20,
+    },
+    modalButton: {
+        paddingVertical: 12,
+        paddingHorizontal: 30,
+        borderRadius: 25,
+        width: '100%',
+        alignItems: 'center',
+    },
+    successButton: {
+        backgroundColor: '#22c55e',
+    },
+    errorButton: {
+        backgroundColor: '#ef4444',
+    },
+    modalButtonText: {
+        color: 'white',
+        fontSize: 16,
+        fontWeight: 'bold',
     },
 });

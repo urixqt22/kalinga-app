@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 import { Alert } from 'react-native';
-import { getUserRole, loginUser, logoutUser } from '../services/auth';
+import { getEmailByName, getUserRole, loginUser, logoutUser } from '../services/auth';
 
 export default function LoginSeniorScreen() {
     const router = useRouter();
@@ -16,8 +16,15 @@ export default function LoginSeniorScreen() {
         if (isLoading) return;
         setIsLoading(true);
         try {
-            // Reconstruct the placeholder email
-            const email = name.replace(/\s+/g, '').toLowerCase() + "@placeholder.com";
+            // 1. Try to find the correct email from Firestore first
+            let email = await getEmailByName(name);
+
+            // 2. Fallback: If not found (or offline), reconstruct the placeholder
+            if (!email) {
+                console.log("Name not found via lookup, using fallback generation.");
+                email = name.replace(/\s+/g, '').toLowerCase() + "@placeholder.com";
+            }
+
             console.log("Attempting login with:", email);
 
             const user = await loginUser(email, password);

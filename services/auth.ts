@@ -86,3 +86,23 @@ export const getUserRole = async (uid: string) => {
         throw error;
     }
 };
+
+import { collection, getDocs, query, where } from "firebase/firestore";
+
+export const getEmailByName = async (name: string) => {
+    try {
+        const usersRef = collection(db, "users");
+        const q = query(usersRef, where("name", "==", name));
+        const querySnapshot = await getDocs(q);
+
+        if (!querySnapshot.empty) {
+            // Return the email of the first matching user
+            return querySnapshot.docs[0].data().email;
+        } else {
+            return null;
+        }
+    } catch (error) {
+        console.error("Error getting email by name:", error);
+        return null;
+    }
+};
