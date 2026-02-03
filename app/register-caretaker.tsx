@@ -160,25 +160,34 @@ export default function RegisterCaretakerScreen() {
                 <Text style={styles.label}>Contact Number</Text>
                 <TextInput style={styles.input} value={contact} onChangeText={setContact} keyboardType="phone-pad" />
 
-                <View style={styles.row}>
-                    <View style={styles.halfInput}>
-                        <Text style={styles.label}>Kasarian (Gender)</Text>
-                        <TextInput style={styles.input} value={gender} onChangeText={setGender} />
-                    </View>
-                    <View style={styles.halfInput}>
-                        <Text style={styles.label}>Imahe ng Valid ID</Text>
-                        <TouchableOpacity style={styles.imagePicker} onPress={pickImage}>
-                            {validIdImage ? (
-                                <Image source={{ uri: validIdImage }} style={styles.idImage} />
-                            ) : (
-                                <View style={styles.uploadPlaceholder}>
-                                    <Ionicons name="camera" size={20} color="#6b7280" />
-                                    <Text style={styles.uploadText}>Upload</Text>
-                                </View>
-                            )}
+                {/* Gender Selection */}
+                <Text style={styles.label}>Kasarian (Gender)</Text>
+                <View style={styles.genderContainer}>
+                    {['Male', 'Female', 'Others'].map((option) => (
+                        <TouchableOpacity
+                            key={option}
+                            style={[styles.genderButton, gender === option && styles.genderButtonSelected]}
+                            onPress={() => setGender(option)}
+                        >
+                            <Text style={[styles.genderText, gender === option && styles.genderTextSelected]}>
+                                {option}
+                            </Text>
                         </TouchableOpacity>
-                    </View>
+                    ))}
                 </View>
+
+                {/* Valid ID Upload */}
+                <Text style={styles.label}>Imahe ng Valid ID</Text>
+                <TouchableOpacity style={styles.imagePicker} onPress={pickImage}>
+                    {validIdImage ? (
+                        <Image source={{ uri: validIdImage }} style={styles.idImage} />
+                    ) : (
+                        <View style={styles.uploadPlaceholder}>
+                            <Ionicons name="camera" size={20} color="#6b7280" />
+                            <Text style={styles.uploadText}>Upload</Text>
+                        </View>
+                    )}
+                </TouchableOpacity>
 
                 {/* Register Button */}
                 <TouchableOpacity
@@ -407,6 +416,31 @@ const styles = StyleSheet.create({
     modalButtonText: {
         color: 'white',
         fontSize: 16,
+        fontWeight: 'bold',
+    },
+    genderContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        gap: 10,
+        marginBottom: 15,
+    },
+    genderButton: {
+        flex: 1,
+        backgroundColor: '#e5e7eb',
+        paddingVertical: 12,
+        borderRadius: 12,
+        alignItems: 'center',
+    },
+    genderButtonSelected: {
+        backgroundColor: '#a855f7', // Purple for Caretaker
+    },
+    genderText: {
+        fontSize: 14,
+        color: '#4b5563',
+        fontWeight: '500',
+    },
+    genderTextSelected: {
+        color: '#fff',
         fontWeight: 'bold',
     },
 });
