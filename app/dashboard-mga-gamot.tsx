@@ -13,6 +13,7 @@ export default function MgaGamotDashboardScreen() {
     // Modal State
     const [selectedMed, setSelectedMed] = useState<Medication | null>(null);
     const [modalVisible, setModalVisible] = useState(false);
+    const [successModalVisible, setSuccessModalVisible] = useState(false);
     const [marking, setMarking] = useState(false);
 
     useEffect(() => {
@@ -54,7 +55,7 @@ export default function MgaGamotDashboardScreen() {
         try {
             await updateMedicationStatus(selectedMed.id, 'Taken');
             setModalVisible(false);
-            alert("Success! Marked as taken.");
+            setTimeout(() => setSuccessModalVisible(true), 300); // Small delay for smooth transition
         } catch (error) {
             alert("Failed to update status.");
         } finally {
@@ -165,6 +166,39 @@ export default function MgaGamotDashboardScreen() {
                             </View>
                         </View>
                     )}
+                </View>
+            </Modal>
+            {/* Success Modal */}
+            <Modal
+                animationType="fade"
+                transparent={true}
+                visible={successModalVisible}
+                onRequestClose={() => setSuccessModalVisible(false)}
+            >
+                <View style={styles.modalOverlay}>
+                    <View style={styles.modalContent}>
+                        <View style={{ alignItems: 'center', padding: 30 }}>
+                            <View style={{
+                                width: 60, height: 60, borderRadius: 30, backgroundColor: '#dcfce7',
+                                justifyContent: 'center', alignItems: 'center', marginBottom: 20
+                            }}>
+                                <Ionicons name="checkmark" size={40} color="#22c55e" />
+                            </View>
+                            <Text style={{ fontSize: 20, fontWeight: 'bold', color: '#1e3a8a', marginBottom: 10 }}>Success!</Text>
+                            <Text style={{ fontSize: 16, color: '#64748b', textAlign: 'center', marginBottom: 20 }}>
+                                Medication marked as taken.
+                            </Text>
+                            <TouchableOpacity
+                                style={{
+                                    backgroundColor: '#3b82f6', paddingVertical: 12, paddingHorizontal: 30,
+                                    borderRadius: 25, width: '100%', alignItems: 'center'
+                                }}
+                                onPress={() => setSuccessModalVisible(false)}
+                            >
+                                <Text style={{ color: '#fff', fontWeight: 'bold' }}>Close</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
                 </View>
             </Modal>
         </View>

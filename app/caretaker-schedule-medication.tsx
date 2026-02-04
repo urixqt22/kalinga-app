@@ -1,18 +1,56 @@
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
-import { useFocusEffect, useRouter } from 'expo-router';
-import { useCallback, useState } from 'react';
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { getMedications, Medication } from '../services/medicationStore';
+import { useRouter } from 'expo-router';
+import { doc, getDoc } from 'firebase/firestore';
+import { useEffect, useState } from 'react';
+import { ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { auth, db } from '../configs/firebase';
+import { getLinkedElder } from '../services/connection';
+import { getMedicationsRealtime, Medication } from '../services/medication';
 
 export default function CaretakerScheduleMedicationScreen() {
     const router = useRouter();
     const [medList, setMedList] = useState<Medication[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [elderName, setElderName] = useState('Elder');
+    const [elderId, setElderId] = useState<string | null>(null);
 
-    useFocusEffect(
-        useCallback(() => {
-            setMedList([...getMedications()]);
-        }, [])
-    );
+    // 1. Fetch Linked Elder ID and Name
+    useEffect(() => {
+        const fetchContext = async () => {
+            if (!auth.currentUser) return;
+
+            try {
+                const linkedId = await getLinkedElder(auth.currentUser.uid);
+                if (linkedId) {
+                    setElderId(linkedId);
+
+                    // Fetch Elder Name
+                    const elderDoc = await getDoc(doc(db, "users", linkedId));
+                    if (elderDoc.exists()) {
+                        setElderName(elderDoc.data().name || "Elder");
+                    }
+                } else {
+                    setLoading(false); // No elder connected
+                }
+            } catch (error) {
+                console.error("Error fetching elder context:", error);
+                setLoading(false);
+            }
+        };
+        fetchContext();
+    }, []);
+
+    // 2. Fetch Medications Realtime (once we have elderId)
+    useEffect(() => {
+        if (!elderId) return;
+
+        const unsubscribe = getMedicationsRealtime(elderId, (meds) => {
+            setMedList(meds);
+            setLoading(false);
+        });
+
+        return () => unsubscribe();
+    }, [elderId]);
 
     const MedItem = ({ name, dosage, time, status }: { name: string, dosage: string, time: string, status: string }) => (
         <View style={styles.card}>
@@ -35,7 +73,7 @@ export default function CaretakerScheduleMedicationScreen() {
                     <Text style={styles.backText}>Back</Text>
                 </TouchableOpacity>
                 <Text style={styles.headerTitle}>Schedule Medication</Text>
-                <Text style={styles.headerSubtitle}>Lola Moises Medication Schedule</Text>
+                <Text style={styles.headerSubtitle}>{elderName}'s Medication Schedule</Text>
             </View>
 
             <View style={styles.content}>
@@ -46,17 +84,29 @@ export default function CaretakerScheduleMedicationScreen() {
                         <Text style={styles.listTitle}>Medication Logs</Text>
                     </View>
 
-                    {medList.map((med) => (
-                        <MedItem key={med.id} name={med.name} dosage={med.dosage} time={med.time} status={med.status} />
-                    ))}
-
-                    {medList.length === 0 && (
-                        <Text style={{ textAlign: 'center', color: '#9ca3af', marginTop: 20 }}>No scheduled medications.</Text>
+                    {loading ? (
+                        <ActivityIndicator color="#a855f7" style={{ marginTop: 20 }} />
+                    ) : (
+                        <>
+                            {medList.length === 0 ? (
+                                <Text style={{ textAlign: 'center', color: '#9ca3af', marginTop: 20 }}>
+                                    No scheduled medications yet.
+                                </Text>
+                            ) : (
+                                medList.map((med) => (
+                                    <MedItem key={med.id} name={med.name} dosage={med.dosage} time={med.time} status={med.status} />
+                                ))
+                            )}
+                        </>
                     )}
 
                 </View>
 
-                <TouchableOpacity style={styles.addButton} onPress={() => router.push('/caretaker-add-medication')}>
+                {/* Only define params if necessary, or rely on context in next screen */}
+                <TouchableOpacity
+                    style={styles.addButton}
+                    onPress={() => router.push('/caretaker-add-medication')}
+                >
                     <MaterialCommunityIcons name="pill" size={24} color="#fff" style={{ marginRight: 10 }} />
                     <Text style={styles.addButtonText}>Schedule Medication</Text>
                 </TouchableOpacity>
