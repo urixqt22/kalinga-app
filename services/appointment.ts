@@ -1,4 +1,4 @@
-import { addDoc, collection, onSnapshot, query, serverTimestamp, where } from 'firebase/firestore';
+import { addDoc, collection, doc, onSnapshot, query, serverTimestamp, updateDoc, where } from 'firebase/firestore';
 import { db } from '../configs/firebase';
 import { sendNotification } from './notification';
 
@@ -87,4 +87,16 @@ export const getAppointmentsRealtime = (userId: string, callback: (appointments:
 
         callback(appointments);
     });
+};
+export const updateAppointmentStatus = async (appointmentId: string, status: 'Scheduled' | 'Completed' | 'Cancelled') => {
+    try {
+        const appointmentRef = doc(db, "appointments", appointmentId);
+        await updateDoc(appointmentRef, {
+            status: status
+        });
+        return { success: true };
+    } catch (error) {
+        console.error("Error updating appointment status:", error);
+        throw error;
+    }
 };

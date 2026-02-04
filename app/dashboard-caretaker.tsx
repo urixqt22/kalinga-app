@@ -5,10 +5,12 @@ import { useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { auth, db } from '../configs/firebase';
 import { logoutUser } from '../services/auth';
+import { getNotifications } from '../services/notification';
 
 export default function DashboardCaretakerScreen() {
     const router = useRouter();
     const [userName, setUserName] = useState('');
+    const [hasNotifications, setHasNotifications] = useState(false);
 
     useEffect(() => {
         const fetchUserName = async () => {
@@ -18,6 +20,12 @@ export default function DashboardCaretakerScreen() {
                 if (docSnap.exists()) {
                     setUserName(docSnap.data().name || "Caretaker");
                 }
+
+                // Fetch notifications to check for badge
+                const unsubscribe = getNotifications(auth.currentUser.uid, (notifs) => {
+                    setHasNotifications(notifs.length > 0);
+                });
+                return () => unsubscribe();
             }
         };
         fetchUserName();
@@ -41,7 +49,7 @@ export default function DashboardCaretakerScreen() {
                         <TouchableOpacity onPress={() => router.push('/dashboard-notifications-caretaker')}>
                             <Ionicons name="notifications" size={30} color="#a855f7" />
                             {/* Notification Dot Indicator */}
-                            <View style={styles.notificationBadge} />
+                            {hasNotifications && <View style={styles.notificationBadge} />}
                         </TouchableOpacity>
                     </View>
                 </View>

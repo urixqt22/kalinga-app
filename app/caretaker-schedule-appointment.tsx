@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { doc, getDoc } from 'firebase/firestore';
 import { useState } from 'react';
-import { Alert, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, Modal, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { auth, db } from '../configs/firebase';
 import { addAppointmentToFirestore } from '../services/appointment';
 
@@ -13,6 +13,7 @@ export default function CaretakerScheduleAppointmentScreen() {
     const [gender, setGender] = useState('');
     const [showGenderPicker, setShowGenderPicker] = useState(false);
     const [loading, setLoading] = useState(false);
+    const [successModalVisible, setSuccessModalVisible] = useState(false);
 
     // Form States
     const [name, setName] = useState('');
@@ -75,23 +76,9 @@ export default function CaretakerScheduleAppointmentScreen() {
                 });
 
                 if (Platform.OS === 'web') {
-                    alert("Appointment scheduled successfully!");
-                    router.replace('/dashboard-health-monitor');
+                    setSuccessModalVisible(true);
                 } else {
-                    Alert.alert(
-                        "Success",
-                        "Appointment scheduled successfully!",
-                        [
-                            {
-                                text: "OK",
-                                onPress: () => {
-                                    // Using replace ensures we don't go back to the form
-                                    router.replace('/dashboard-health-monitor');
-                                }
-                            }
-                        ],
-                        { cancelable: false }
-                    );
+                    setSuccessModalVisible(true);
                 }
             }
         } catch (error: any) {
@@ -239,6 +226,43 @@ export default function CaretakerScheduleAppointmentScreen() {
                     <Text style={styles.cancelButtonText}>I-cancel</Text>
                 </TouchableOpacity>
 
+                {/* Success Modal */}
+                <Modal
+                    animationType="fade"
+                    transparent={true}
+                    visible={successModalVisible}
+                    onRequestClose={() => setSuccessModalVisible(false)}
+                >
+                    <View style={styles.modalOverlay}>
+                        <View style={styles.modalContent}>
+                            <View style={{ alignItems: 'center', padding: 30 }}>
+                                <View style={{
+                                    width: 60, height: 60, borderRadius: 30, backgroundColor: '#dcfce7',
+                                    justifyContent: 'center', alignItems: 'center', marginBottom: 20
+                                }}>
+                                    <Ionicons name="checkmark" size={40} color="#22c55e" />
+                                </View>
+                                <Text style={{ fontSize: 20, fontWeight: 'bold', color: '#1e3a8a', marginBottom: 10 }}>Success!</Text>
+                                <Text style={{ fontSize: 16, color: '#64748b', textAlign: 'center', marginBottom: 20 }}>
+                                    Appointment scheduled successfully!
+                                </Text>
+                                <TouchableOpacity
+                                    style={{
+                                        backgroundColor: '#a855f7', paddingVertical: 12, paddingHorizontal: 30,
+                                        borderRadius: 25, width: '100%', alignItems: 'center'
+                                    }}
+                                    onPress={() => {
+                                        setSuccessModalVisible(false);
+                                        router.replace('/dashboard-health-monitor');
+                                    }}
+                                >
+                                    <Text style={{ color: '#fff', fontWeight: 'bold' }}>Done</Text>
+                                </TouchableOpacity>
+                            </View>
+                        </View>
+                    </View>
+                </Modal>
+
             </View>
 
         </ScrollView>
@@ -368,5 +392,20 @@ const styles = StyleSheet.create({
     divider: {
         height: 1,
         backgroundColor: '#e5e7eb',
+    },
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0,0,0,0.5)',
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: 20,
+    },
+    modalContent: {
+        backgroundColor: '#fff',
+        borderRadius: 25,
+        width: '100%',
+        maxWidth: 320,
+        elevation: 10,
+        overflow: 'hidden',
     },
 });

@@ -2,6 +2,7 @@ import {
     addDoc,
     collection,
     doc,
+    getDoc,
     onSnapshot,
     query,
     serverTimestamp,
@@ -78,9 +79,31 @@ export const getMedicationsRealtime = (elderId: string, callback: (meds: Medicat
 export const updateMedicationStatus = async (medicationId: string, status: 'Taken' | 'Skipped' | 'Scheduled') => {
     try {
         const medRef = doc(db, "medications", medicationId);
-        await updateDoc(medRef, {
-            status: status
-        });
+
+        // 1. Fetch the medication doc to get details for notification
+        const medSnap = await getDoc(medRef);
+        if (medSnap.exists()) {
+            const medData = medSnap.data() as Medication;
+
+            // 2. Update status
+            await updateDoc(medRef, {
+                status: status
+            });
+
+            // 3. If taken, notify Caretaker
+            if (status === 'Taken' && medData.caretakerId) {
+                // Ideally we would fetch Elder's name too, but for speed "Your Elder" works or we pass it.
+                // Since this runs on Elder's device usually, we can say "Elder has taken..."
+                await sendNotification(
+                    medData.caretakerId, // To Caretaker
+                    "Medication Taken",
+                    `Medication ${medData.name} ${medData.dosage} has been marked as taken.`,
+                    'success',
+                    medData.elderId // From Elder
+                );
+            }
+        }
+
         return { success: true };
     } catch (error) {
         console.error("Error updating medication status:", error);

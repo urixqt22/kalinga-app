@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { doc, getDoc } from 'firebase/firestore';
 import { useState } from 'react';
-import { ActivityIndicator, Alert, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Alert, Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { auth, db } from '../configs/firebase';
 import { addVitalToFirestore } from '../services/vitals';
 
@@ -12,6 +12,7 @@ export default function CaretakerAddReadingScreen() {
     const [diastolic, setDiastolic] = useState('');
     const [sugar, setSugar] = useState('');
     const [loading, setLoading] = useState(false);
+    const [successModalVisible, setSuccessModalVisible] = useState(false);
 
     const handleSave = async () => {
         if (!systolic || !diastolic || !sugar) {
@@ -49,9 +50,7 @@ export default function CaretakerAddReadingScreen() {
                     bloodSugar: sugar
                 });
 
-                Alert.alert("Success", "Vitals recorded successfully!", [
-                    { text: "OK", onPress: () => router.back() }
-                ]);
+                setSuccessModalVisible(true);
             }
         } catch (error: any) {
             Alert.alert("Error", error.message);
@@ -127,6 +126,42 @@ export default function CaretakerAddReadingScreen() {
 
             </View>
 
+            {/* Success Modal */}
+            <Modal
+                animationType="fade"
+                transparent={true}
+                visible={successModalVisible}
+                onRequestClose={() => setSuccessModalVisible(false)}
+            >
+                <View style={styles.modalOverlay}>
+                    <View style={styles.modalContent}>
+                        <View style={{ alignItems: 'center', padding: 30 }}>
+                            <View style={{
+                                width: 60, height: 60, borderRadius: 30, backgroundColor: '#dcfce7',
+                                justifyContent: 'center', alignItems: 'center', marginBottom: 20
+                            }}>
+                                <Ionicons name="checkmark" size={40} color="#22c55e" />
+                            </View>
+                            <Text style={{ fontSize: 20, fontWeight: 'bold', color: '#1e3a8a', marginBottom: 10 }}>Success!</Text>
+                            <Text style={{ fontSize: 16, color: '#64748b', textAlign: 'center', marginBottom: 20 }}>
+                                Reading successfully added!
+                            </Text>
+                            <TouchableOpacity
+                                style={{
+                                    backgroundColor: '#a855f7', paddingVertical: 12, paddingHorizontal: 30,
+                                    borderRadius: 25, width: '100%', alignItems: 'center'
+                                }}
+                                onPress={() => {
+                                    setSuccessModalVisible(false);
+                                    router.back();
+                                }}
+                            >
+                                <Text style={{ color: '#fff', fontWeight: 'bold' }}>Done</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </View>
+            </Modal>
         </ScrollView>
     );
 }
@@ -210,5 +245,20 @@ const styles = StyleSheet.create({
         color: '#fff',
         fontSize: 18,
         fontWeight: 'bold',
+    },
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0,0,0,0.5)',
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: 20,
+    },
+    modalContent: {
+        backgroundColor: '#fff',
+        borderRadius: 25,
+        width: '100%',
+        maxWidth: 320,
+        elevation: 10,
+        overflow: 'hidden',
     },
 });

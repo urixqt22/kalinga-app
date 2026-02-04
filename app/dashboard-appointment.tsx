@@ -1,29 +1,60 @@
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { doc, getDoc } from 'firebase/firestore';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { auth } from '../configs/firebase';
-import { Appointment, getAppointmentsRealtime } from '../services/appointment';
+import { ActivityIndicator, Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { auth, db } from '../configs/firebase';
+import { Appointment, getAppointmentsRealtime, updateAppointmentStatus } from '../services/appointment';
 
 export default function AppointmentDashboardScreen() {
     const router = useRouter();
+    const [userRole, setUserRole] = useState<'senior' | 'caretaker'>('senior');
+    const [successModalVisible, setSuccessModalVisible] = useState(false);
+    const [actionMessage, setActionMessage] = useState('');
     const [appointments, setAppointments] = useState<Appointment[]>([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        if (!auth.currentUser) return;
+        const fetchData = async () => {
+            if (!auth.currentUser) return;
 
-        const unsubscribe = getAppointmentsRealtime(auth.currentUser.uid, (data) => {
-            setAppointments(data);
-            setLoading(false);
-        });
+            // Check User Role & Correct ID
+            const userDoc = await getDoc(doc(db, "users", auth.currentUser.uid));
+            let targetId = auth.currentUser.uid;
 
-        return () => unsubscribe();
+            if (userDoc.exists()) {
+                const userData = userDoc.data();
+                if (userData.role === 'caretaker') {
+                    setUserRole('caretaker');
+                    if (userData.linkedElders && userData.linkedElders.length > 0) {
+                        targetId = userData.linkedElders[0];
+                    }
+                }
+            }
+
+            const unsubscribe = getAppointmentsRealtime(targetId, (data) => {
+                // Filter out cancelled/completed if needed, or show them differently?
+                // User said "remove from the schedule dashboard", implies hiding them.
+                const active = data.filter(a => a.status === 'Scheduled');
+                setAppointments(active);
+                setLoading(false);
+            });
+
+            return () => unsubscribe();
+        };
+
+        fetchData();
     }, []);
 
-    // Helper to separate Today vs Upcoming (simplified for now)
-    // In a real app, you'd parse proper Date objects.
-    const todayAppointments = appointments; // For now, show all here or filter logic needed
+    const handleUpdateStatus = async (id: string, status: 'Completed' | 'Cancelled') => {
+        try {
+            await updateAppointmentStatus(id, status);
+            setActionMessage(status === 'Completed' ? "Appointment marked as done!" : "Appointment cancelled.");
+            setSuccessModalVisible(true);
+        } catch (error) {
+            alert("Error updating status");
+        }
+    };
 
     return (
         <ScrollView contentContainerStyle={styles.container}>
@@ -64,9 +95,6 @@ export default function AppointmentDashboardScreen() {
                             <View key={apt.id} style={styles.scheduleCard}>
                                 <View style={styles.doctorIconBox}>
                                     <MaterialCommunityIcons name="doctor" size={30} color="#3b82f6" />
-                                    <View style={styles.plusBadge}>
-                                        <Ionicons name="add" size={10} color="#fff" />
-                                    </View>
                                 </View>
                                 <View style={styles.scheduleContent}>
                                     <Text style={styles.doctorName}>Doctor {apt.doctorName} visit.</Text>
@@ -74,6 +102,25 @@ export default function AppointmentDashboardScreen() {
                                     <View style={styles.dateContainer}>
                                         <Text style={styles.visitDate}>{apt.date}</Text>
                                         <Text style={styles.visitDay}>Upcoming</Text>
+                                    </View>
+
+                                    {/* Actions for Caretaker */}
+                                    <View style={styles.actionRow}>
+                                        <TouchableOpacity
+                                            style={[styles.actionButton, { backgroundColor: '#dcfce7' }]}
+                                            onPress={() => handleUpdateStatus(apt.id, 'Completed')}
+                                        >
+                                            <Ionicons name="checkmark" size={20} color="#22c55e" />
+                                            <Text style={[styles.actionText, { color: '#166534' }]}>Done</Text>
+                                        </TouchableOpacity>
+
+                                        <TouchableOpacity
+                                            style={[styles.actionButton, { backgroundColor: '#fee2e2' }]}
+                                            onPress={() => handleUpdateStatus(apt.id, 'Cancelled')}
+                                        >
+                                            <Ionicons name="close" size={20} color="#ef4444" />
+                                            <Text style={[styles.actionText, { color: '#991b1b' }]}>Cancel</Text>
+                                        </TouchableOpacity>
                                     </View>
                                 </View>
                             </View>
@@ -88,6 +135,39 @@ export default function AppointmentDashboardScreen() {
                 )}
             </View>
 
+            {/* Success Modal */}
+            <Modal
+                animationType="fade"
+                transparent={true}
+                visible={successModalVisible}
+                onRequestClose={() => setSuccessModalVisible(false)}
+            >
+                <View style={styles.modalOverlay}>
+                    <View style={styles.modalContent}>
+                        <View style={{ alignItems: 'center', padding: 30 }}>
+                            <View style={{
+                                width: 60, height: 60, borderRadius: 30, backgroundColor: '#dcfce7',
+                                justifyContent: 'center', alignItems: 'center', marginBottom: 20
+                            }}>
+                                <Ionicons name="checkmark" size={40} color="#22c55e" />
+                            </View>
+                            <Text style={{ fontSize: 20, fontWeight: 'bold', color: '#1e3a8a', marginBottom: 10 }}>Success!</Text>
+                            <Text style={{ fontSize: 16, color: '#64748b', textAlign: 'center', marginBottom: 20 }}>
+                                {actionMessage}
+                            </Text>
+                            <TouchableOpacity
+                                style={{
+                                    backgroundColor: '#3b82f6', paddingVertical: 12, paddingHorizontal: 30,
+                                    borderRadius: 25, width: '100%', alignItems: 'center'
+                                }}
+                                onPress={() => setSuccessModalVisible(false)}
+                            >
+                                <Text style={{ color: '#fff', fontWeight: 'bold' }}>Close</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </View>
+            </Modal>
         </ScrollView>
     );
 }
@@ -102,6 +182,7 @@ const styles = StyleSheet.create({
         paddingTop: 60,
         paddingHorizontal: 20,
         paddingBottom: 30,
+        borderBottomLeftRadius: 0,
     },
     backButton: {
         flexDirection: 'row',
@@ -161,6 +242,7 @@ const styles = StyleSheet.create({
     },
     listContainer: {
         paddingHorizontal: 20,
+        paddingBottom: 50,
     },
     scheduleCard: {
         backgroundColor: '#fff',
@@ -168,7 +250,7 @@ const styles = StyleSheet.create({
         padding: 20,
         marginBottom: 15,
         flexDirection: 'row',
-        alignItems: 'center',
+        alignItems: 'flex-start',
         borderWidth: 1,
         borderColor: '#bfdbfe',
     },
@@ -180,20 +262,6 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         marginRight: 15,
-        position: 'relative',
-    },
-    plusBadge: {
-        position: 'absolute',
-        bottom: 5,
-        right: 5,
-        backgroundColor: '#3b82f6',
-        width: 15,
-        height: 15,
-        borderRadius: 7.5,
-        justifyContent: 'center',
-        alignItems: 'center',
-        borderWidth: 1,
-        borderColor: '#fff',
     },
     scheduleContent: {
         flex: 1,
@@ -222,5 +290,37 @@ const styles = StyleSheet.create({
     visitDay: {
         fontSize: 12,
         color: '#3b82f6',
+    },
+    actionRow: {
+        flexDirection: 'row',
+        gap: 10,
+        marginTop: 15,
+    },
+    actionButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingVertical: 5,
+        paddingHorizontal: 12,
+        borderRadius: 15,
+        gap: 5,
+    },
+    actionText: {
+        fontSize: 12,
+        fontWeight: 'bold',
+    },
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0,0,0,0.5)',
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: 20,
+    },
+    modalContent: {
+        backgroundColor: '#fff',
+        borderRadius: 25,
+        width: '100%',
+        maxWidth: 320,
+        elevation: 10,
+        overflow: 'hidden',
     },
 });
