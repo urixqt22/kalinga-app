@@ -3,6 +3,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { auth } from '../configs/firebase';
+import { getLinkedElder } from '../services/connection';
 import { addFamilyContact, deleteFamilyContact, FamilyContact, getFamilyContactsRealtime } from '../services/family';
 
 export default function PamilyaDashboardScreen() {
@@ -16,6 +17,7 @@ export default function PamilyaDashboardScreen() {
     const [contacts, setContacts] = useState<FamilyContact[]>([]);
     const [loading, setLoading] = useState(true);
     const [modalVisible, setModalVisible] = useState(false);
+    const [targetUserId, setTargetUserId] = useState<string | null>(null);
 
     // Form State
     const [newName, setNewName] = useState('');
@@ -24,15 +26,34 @@ export default function PamilyaDashboardScreen() {
     const [adding, setAdding] = useState(false);
 
     useEffect(() => {
-        if (!auth.currentUser) return;
+        const fetchTargetUser = async () => {
+            if (!auth.currentUser) return;
 
-        const unsubscribe = getFamilyContactsRealtime(auth.currentUser.uid, (fetchedContacts) => {
+            if (isCaretaker) {
+                const linkedElderId = await getLinkedElder(auth.currentUser.uid);
+                if (linkedElderId) {
+                    setTargetUserId(linkedElderId);
+                } else {
+                    console.log("No linked elder found for caretaker.");
+                    setLoading(false); // Stop loading if no elder found
+                }
+            } else {
+                setTargetUserId(auth.currentUser.uid);
+            }
+        };
+        fetchTargetUser();
+    }, [isCaretaker]);
+
+    useEffect(() => {
+        if (!targetUserId) return;
+
+        const unsubscribe = getFamilyContactsRealtime(targetUserId, (fetchedContacts) => {
             setContacts(fetchedContacts);
             setLoading(false);
         });
 
         return () => unsubscribe();
-    }, []);
+    }, [targetUserId]);
 
     const handleAddContact = async () => {
         if (!newName.trim() || !newRelation.trim() || !newPhone.trim()) {
@@ -40,11 +61,11 @@ export default function PamilyaDashboardScreen() {
             return;
         }
 
-        if (!auth.currentUser) return;
+        if (!targetUserId) return;
 
         setAdding(true);
         try {
-            await addFamilyContact(auth.currentUser.uid, newName, newRelation, newPhone);
+            await addFamilyContact(targetUserId, newName, newRelation, newPhone);
             setModalVisible(false);
             setNewName('');
             setNewRelation('');
@@ -57,9 +78,9 @@ export default function PamilyaDashboardScreen() {
     };
 
     const handleDelete = async (id: string) => {
-        if (!auth.currentUser) return;
+        if (!targetUserId) return;
         try {
-            await deleteFamilyContact(auth.currentUser.uid, id);
+            await deleteFamilyContact(targetUserId, id);
         } catch (error) {
             console.error(error);
         }

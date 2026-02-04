@@ -148,3 +148,21 @@ export const removeConnection = async (caretakerId: string, elderId: string) => 
         throw error;
     }
 };
+
+export const getLinkedElder = async (caretakerId: string): Promise<string | null> => {
+    try {
+        const caretakerDocRef = doc(db, "users", caretakerId);
+        const caretakerDocSnap = await getDoc(caretakerDocRef);
+
+        if (caretakerDocSnap.exists()) {
+            const data = caretakerDocSnap.data();
+            if (data.linkedElders && data.linkedElders.length > 0) {
+                return data.linkedElders[0]; // Return the first linked elder
+            }
+        }
+        return null;
+    } catch (error) {
+        console.error("Error fetching linked elder:", error);
+        return null;
+    }
+};
