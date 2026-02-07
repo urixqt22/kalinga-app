@@ -21,6 +21,7 @@ export default function RegisterCaretakerScreen() {
     const [modalVisible, setModalVisible] = useState(false);
     const [modalType, setModalType] = useState<'success' | 'error'>('success');
     const [modalMessage, setModalMessage] = useState('');
+    const [consentModalVisible, setConsentModalVisible] = useState(true); // Show on load
 
     const pickImage = async () => {
         let result = await ImagePicker.launchImageLibraryAsync({
@@ -47,6 +48,15 @@ export default function RegisterCaretakerScreen() {
         if (modalType === 'success') {
             router.push('/welcome-caretaker');
         }
+    };
+
+    const handleConsentAgree = () => {
+        setConsentModalVisible(false);
+    };
+
+    const handleConsentDecline = () => {
+        setConsentModalVisible(false);
+        router.back();
     };
 
     const handleRegister = async () => {
@@ -125,6 +135,38 @@ export default function RegisterCaretakerScreen() {
                                 {modalType === 'success' ? 'Continue' : 'Try Again'}
                             </Text>
                         </TouchableOpacity>
+                    </View>
+                </View>
+            </Modal>
+
+            {/* Data Privacy Consent Modal */}
+            <Modal transparent={true} animationType="slide" visible={consentModalVisible} onRequestClose={() => setConsentModalVisible(false)}>
+                <View style={styles.modalOverlay}>
+                    <View style={styles.modalContent}>
+                        <Text style={styles.modalTitle}>Data Privacy Consent</Text>
+                        <ScrollView style={{ maxHeight: 300, marginBottom: 20 }}>
+                            <Text style={styles.consentText}>
+                                By clicking "I Agree", I hereby grant my free, voluntary, and unconditional consent to KALINGA-APP to collect, store, and process my personal data, which may include my name, contact details, government IDs, etc.
+                                {"\n"}{"\n"}
+                                I understand that this information will be used for the purpose of processing my membership, or providing medical services. I further authorize the app to share this information with government services solely for the fulfillment of the declared purpose.
+                                {"\n"}{"\n"}
+                                I acknowledge that I have been informed of my rights as a Data Subject under the Data Privacy Act of 2012, including the right to access, correct, or request the deletion of my data. For any privacy-related concerns, I may contact the Data Protection Officer at urixfarinas@gmail.com.
+                            </Text>
+                        </ScrollView>
+                        <View style={styles.row}>
+                            <TouchableOpacity
+                                style={[styles.consentButton, { backgroundColor: '#a855f7' }]}
+                                onPress={handleConsentAgree}
+                            >
+                                <Text style={styles.consentButtonText}>I Agree</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                style={[styles.consentButton, { backgroundColor: '#ef4444' }]}
+                                onPress={handleConsentDecline}
+                            >
+                                <Text style={styles.consentButtonText}>Cancel</Text>
+                            </TouchableOpacity>
+                        </View>
                     </View>
                 </View>
             </Modal>
@@ -280,6 +322,7 @@ const styles = StyleSheet.create({
     row: {
         flexDirection: 'row',
         justifyContent: 'space-between',
+        width: '100%',
         gap: 10,
     },
     halfInput: {
@@ -358,7 +401,7 @@ const styles = StyleSheet.create({
         backgroundColor: 'rgba(0, 0, 0, 0.5)',
     },
     modalContent: {
-        width: '80%',
+        width: '90%',
         backgroundColor: 'white',
         borderRadius: 20,
         padding: 20,
@@ -441,6 +484,26 @@ const styles = StyleSheet.create({
     },
     genderTextSelected: {
         color: '#fff',
+        fontWeight: 'bold',
+    },
+    consentText: {
+        fontSize: 14,
+        color: '#374151',
+        lineHeight: 22,
+        marginBottom: 20,
+        textAlign: 'justify'
+    },
+    consentButton: {
+        flex: 1,
+        height: 45,
+        borderRadius: 10,
+        justifyContent: 'center',
+        alignItems: 'center',
+        elevation: 2,
+    },
+    consentButtonText: {
+        color: '#fff',
+        fontSize: 16,
         fontWeight: 'bold',
     },
 });

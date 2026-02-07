@@ -112,8 +112,8 @@ export default function MgaGamotDashboardScreen() {
                                             color={med.status === 'Taken' ? "#22c55e" : "#3b82f6"}
                                         />
                                     </View>
-                                    <View>
-                                        <Text style={[styles.medName, med.status === 'Taken' && { color: '#86efac', textDecorationLine: 'line-through' }]}>
+                                    <View style={[med.status === 'Taken' && { opacity: 1 }]}>
+                                        <Text style={[styles.medName, med.status === 'Taken' && { color: '#374151' }]}>
                                             {med.name} {med.dosage}
                                         </Text>
                                         <Text style={styles.medTime}>{med.time} • {med.status}</Text>
@@ -270,6 +270,7 @@ const styles = StyleSheet.create({
     },
     listContainer: {
         paddingHorizontal: 20,
+        paddingTop: 20,
     },
     medCard: {
         backgroundColor: '#fff',
@@ -282,9 +283,9 @@ const styles = StyleSheet.create({
         borderColor: '#bfdbfe',
     },
     medCardTaken: {
-        backgroundColor: '#f0fdf4',
-        borderColor: '#bbf7d0',
-        opacity: 0.8,
+        backgroundColor: '#fff',
+        borderColor: '#93c5fd', // Light Blue Border
+        opacity: 0.9,
     },
     medIconBox: {
         backgroundColor: '#dbeafe',

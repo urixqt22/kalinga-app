@@ -1,8 +1,10 @@
 import {
     addDoc,
     collection,
+    deleteDoc,
     doc,
     getDoc,
+    getDocs,
     onSnapshot,
     query,
     serverTimestamp,
@@ -107,6 +109,22 @@ export const updateMedicationStatus = async (medicationId: string, status: 'Take
         return { success: true };
     } catch (error) {
         console.error("Error updating medication status:", error);
+        throw error;
+    }
+};
+
+export const deleteAllMedications = async (elderId: string) => {
+    try {
+        const medsRef = collection(db, "medications");
+        const q = query(medsRef, where("elderId", "==", elderId));
+        const snapshot = await getDocs(q);
+
+        const deletePromises = snapshot.docs.map(doc => deleteDoc(doc.ref));
+        await Promise.all(deletePromises);
+
+        return { success: true };
+    } catch (error) {
+        console.error("Error deleting all medications:", error);
         throw error;
     }
 };

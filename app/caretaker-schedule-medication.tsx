@@ -2,10 +2,10 @@ import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { doc, getDoc } from 'firebase/firestore';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { auth, db } from '../configs/firebase';
 import { getLinkedElder } from '../services/connection';
-import { getMedicationsRealtime, Medication } from '../services/medication';
+import { deleteAllMedications, getMedicationsRealtime, Medication } from '../services/medication';
 
 export default function CaretakerScheduleMedicationScreen() {
     const router = useRouter();
@@ -52,6 +52,24 @@ export default function CaretakerScheduleMedicationScreen() {
         return () => unsubscribe();
     }, [elderId]);
 
+    const [isClearModalVisible, setClearModalVisible] = useState(false);
+
+    const handleClearLogs = () => {
+        setClearModalVisible(true);
+    };
+
+    const confirmClearLogs = async () => {
+        setClearModalVisible(false);
+        if (elderId) {
+            try {
+                await deleteAllMedications(elderId);
+            } catch (error) {
+                console.error("Failed to clear logs:", error);
+                alert("Failed to clear logs");
+            }
+        }
+    };
+
     const MedItem = ({ name, dosage, time, status }: { name: string, dosage: string, time: string, status: string }) => (
         <View style={styles.card}>
             <View style={styles.iconCircle}>
@@ -80,8 +98,15 @@ export default function CaretakerScheduleMedicationScreen() {
 
                 <View style={styles.listContainer}>
                     <View style={styles.listHeader}>
-                        <MaterialCommunityIcons name="pill" size={24} color="#a855f7" />
-                        <Text style={styles.listTitle}>Medication Logs</Text>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+                            <MaterialCommunityIcons name="pill" size={24} color="#a855f7" />
+                            <Text style={styles.listTitle}>Medication Logs</Text>
+                        </View>
+                        {medList.length > 0 && (
+                            <TouchableOpacity onPress={handleClearLogs}>
+                                <Text style={{ color: '#ef4444', fontWeight: 'bold' }}>Clear Logs</Text>
+                            </TouchableOpacity>
+                        )}
                     </View>
 
                     {loading ? (
@@ -112,6 +137,39 @@ export default function CaretakerScheduleMedicationScreen() {
                 </TouchableOpacity>
 
             </View>
+
+            {/* Clear Logs Confirmation Modal */}
+            <Modal
+                visible={isClearModalVisible}
+                transparent={true}
+                animationType="fade"
+                onRequestClose={() => setClearModalVisible(false)}
+            >
+                <View style={styles.modalOverlay}>
+                    <View style={styles.modalContent}>
+                        <Text style={styles.modalTitle}>Clear All Logs</Text>
+                        <Text style={styles.modalMessage}>
+                            Are you sure you want to delete all medication logs? This cannot be undone.
+                        </Text>
+
+                        <View style={styles.modalButtons}>
+                            <TouchableOpacity
+                                style={[styles.modalButton, styles.cancelButton]}
+                                onPress={() => setClearModalVisible(false)}
+                            >
+                                <Text style={styles.cancelButtonText}>Cancel</Text>
+                            </TouchableOpacity>
+
+                            <TouchableOpacity
+                                style={[styles.modalButton, styles.deleteButton]}
+                                onPress={confirmClearLogs}
+                            >
+                                <Text style={styles.deleteButtonText}>Clear</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </View>
+            </Modal>
 
         </ScrollView>
     );
@@ -163,8 +221,8 @@ const styles = StyleSheet.create({
     listHeader: {
         flexDirection: 'row',
         alignItems: 'center',
+        justifyContent: 'space-between',
         marginBottom: 20,
-        gap: 10,
     },
     listTitle: {
         fontSize: 16,
@@ -197,15 +255,70 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'center',
         alignItems: 'center',
-        position: 'absolute',
-        bottom: 30,
-        left: 50,
-        right: 50,
+        marginTop: 20,
+        marginHorizontal: 50,
+        marginBottom: 30,
         elevation: 5,
     },
     addButtonText: {
         color: '#fff',
         fontSize: 16,
         fontWeight: 'bold',
+    },
+    // Modal Styles
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    modalContent: {
+        width: '85%',
+        backgroundColor: '#fff',
+        borderRadius: 20,
+        padding: 25,
+        alignItems: 'center',
+        elevation: 5,
+    },
+    modalTitle: {
+        fontSize: 20,
+        fontWeight: 'bold',
+        color: '#1f2937',
+        marginBottom: 10,
+    },
+    modalMessage: {
+        fontSize: 16,
+        color: '#6b7280',
+        textAlign: 'center',
+        marginBottom: 25,
+        lineHeight: 24,
+    },
+    modalButtons: {
+        flexDirection: 'row',
+        width: '100%',
+        gap: 15,
+    },
+    modalButton: {
+        flex: 1,
+        paddingVertical: 12,
+        borderRadius: 12,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    cancelButton: {
+        backgroundColor: '#f3f4f6',
+    },
+    cancelButtonText: {
+        color: '#4b5563',
+        fontWeight: '600',
+        fontSize: 16,
+    },
+    deleteButton: {
+        backgroundColor: '#ef4444',
+    },
+    deleteButtonText: {
+        color: '#fff',
+        fontWeight: '600',
+        fontSize: 16,
     },
 });

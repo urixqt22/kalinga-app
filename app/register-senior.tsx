@@ -1,4 +1,4 @@
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
@@ -13,14 +13,28 @@ export default function RegisterSeniorScreen() {
     const [confirmPassword, setConfirmPassword] = useState('');
     const [contact, setContact] = useState('');
     const [gender, setGender] = useState('');
-    const [seniorId, setSeniorId] = useState(''); // Text fallback or status
+    const [seniorId, setSeniorId] = useState('');
     const [seniorIdImage, setSeniorIdImage] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
+
+    // Font Size State
+    const [fontSizeScale, setFontSizeScale] = useState(1);
+
+    const toggleFontSize = () => {
+        setFontSizeScale(prev => {
+            if (prev >= 2.0) return 1;
+            return prev + 0.5;
+        });
+    };
+
+    // Helper for scaled font size
+    const getFontSize = (size: number) => size * fontSizeScale;
 
     // Modal State
     const [modalVisible, setModalVisible] = useState(false);
     const [modalType, setModalType] = useState<'success' | 'error'>('success');
     const [modalMessage, setModalMessage] = useState('');
+    const [consentModalVisible, setConsentModalVisible] = useState(true); // Show on load
 
     const pickImage = async () => {
         let result = await ImagePicker.launchImageLibraryAsync({
@@ -47,6 +61,15 @@ export default function RegisterSeniorScreen() {
         if (modalType === 'success') {
             router.push('/welcome-senior');
         }
+    };
+
+    const handleConsentAgree = () => {
+        setConsentModalVisible(false);
+    };
+
+    const handleConsentDecline = () => {
+        setConsentModalVisible(false);
+        router.back();
     };
 
     const handleRegister = async () => {
@@ -86,7 +109,7 @@ export default function RegisterSeniorScreen() {
                 <View style={styles.loadingContainer}>
                     <View style={styles.loadingBox}>
                         <ActivityIndicator size="large" color="#2563eb" />
-                        <Text style={styles.loadingText}>Creating Account...</Text>
+                        <Text style={[styles.loadingText, { fontSize: getFontSize(14) }]}>Creating Account...</Text>
                     </View>
                 </View>
             </Modal>
@@ -102,15 +125,15 @@ export default function RegisterSeniorScreen() {
                                 color="#fff"
                             />
                         </View>
-                        <Text style={styles.modalTitle}>
+                        <Text style={[styles.modalTitle, { fontSize: getFontSize(22) }]}>
                             {modalType === 'success' ? 'Success!' : 'Registration Failed'}
                         </Text>
-                        <Text style={styles.modalMessage}>{modalMessage}</Text>
+                        <Text style={[styles.modalMessage, { fontSize: getFontSize(16) }]}>{modalMessage}</Text>
                         <TouchableOpacity
                             style={[styles.modalButton, modalType === 'error' ? styles.errorButton : styles.successButton]}
                             onPress={handleModalClose}
                         >
-                            <Text style={styles.modalButtonText}>
+                            <Text style={[styles.modalButtonText, { fontSize: getFontSize(16) }]}>
                                 {modalType === 'success' ? 'Continue' : 'Try Again'}
                             </Text>
                         </TouchableOpacity>
@@ -118,41 +141,84 @@ export default function RegisterSeniorScreen() {
                 </View>
             </Modal>
 
+            {/* Data Privacy Consent Modal */}
+            <Modal transparent={true} animationType="slide" visible={consentModalVisible} onRequestClose={() => setConsentModalVisible(false)}>
+                <View style={styles.modalOverlay}>
+                    <View style={styles.modalContent}>
+                        <Text style={[styles.modalTitle, { fontSize: getFontSize(22) }]}>Data Privacy Consent</Text>
+                        <ScrollView style={{ maxHeight: 300, marginBottom: 20 }}>
+                            <Text style={[styles.consentText, { fontSize: getFontSize(14) }]}>
+                                By clicking "I Agree", I hereby grant my free, voluntary, and unconditional consent to KALINGA-APP to collect, store, and process my personal data, which may include my name, contact details, government IDs, etc.
+                                {"\n"}{"\n"}
+                                I understand that this information will be used for the purpose of processing my membership, or providing medical services. I further authorize the app to share this information with government services solely for the fulfillment of the declared purpose.
+                                {"\n"}{"\n"}
+                                I acknowledge that I have been informed of my rights as a Data Subject under the Data Privacy Act of 2012, including the right to access, correct, or request the deletion of my data. For any privacy-related concerns, I may contact the Data Protection Officer at urixfarinas@gmail.com.
+                            </Text>
+                        </ScrollView>
+                        <View style={styles.row}>
+                            <TouchableOpacity
+                                style={[styles.consentButton, { backgroundColor: '#2563eb' }]}
+                                onPress={handleConsentAgree}
+                            >
+                                <Text style={[styles.consentButtonText, { fontSize: getFontSize(16) }]}>I Agree</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                style={[styles.consentButton, { backgroundColor: '#ef4444' }]}
+                                onPress={handleConsentDecline}
+                            >
+                                <Text style={[styles.consentButtonText, { fontSize: getFontSize(16) }]}>Cancel</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </View>
+            </Modal>
+
             {/* Header */}
             <View style={styles.header}>
-                <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-                    <Ionicons name="arrow-back" size={24} color="#fff" />
-                    <Text style={styles.backText}>Bumalik</Text>
-                </TouchableOpacity>
-                <Text style={styles.headerTitle}>Gumawa ng Account</Text>
-                <Text style={styles.headerSubtitle}>Create your account for personalized care.</Text>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 15 }}>
+                    <TouchableOpacity onPress={() => router.back()} style={{ flexDirection: 'row', alignItems: 'center' }}>
+                        <Ionicons name="arrow-back" size={24} color="#fff" />
+                        <Text style={[styles.backText, { fontSize: getFontSize(16) }]}>Bumalik</Text>
+                    </TouchableOpacity>
+
+                    {/* Font Size Toggle Button */}
+                    <TouchableOpacity onPress={toggleFontSize} style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.2)', paddingHorizontal: 10, paddingVertical: 5, borderRadius: 15 }}>
+                        <MaterialCommunityIcons name="format-size" size={20} color="#fff" style={{ marginRight: 5 }} />
+                        <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 14 }}>
+                            {Math.round(fontSizeScale * 100)}%
+                        </Text>
+                    </TouchableOpacity>
+                </View>
+
+                <Text style={[styles.headerTitle, { fontSize: getFontSize(26) }]}>Gumawa ng Account</Text>
+                <Text style={[styles.headerSubtitle, { fontSize: getFontSize(14) }]}>Create your account for personalized care.</Text>
             </View>
 
             {/* Form */}
             <View style={styles.formContainer}>
                 {/* Requirements */}
                 <View style={styles.requirementsBox}>
-                    <Text style={styles.reqTitle}>Mga Kailangan (Requirements)</Text>
-                    <Text style={styles.reqItem}>• Personal Information</Text>
-                    <Text style={styles.reqItem}>• Senior Citizen ID</Text>
-                    <Text style={styles.reqItem}>• Emergency Contacts</Text>
+                    <Text style={[styles.reqTitle, { fontSize: getFontSize(16) }]}>Mga Kailangan (Requirements)</Text>
+                    <Text style={[styles.reqItem, { fontSize: getFontSize(14) }]}>• Personal Information</Text>
+                    <Text style={[styles.reqItem, { fontSize: getFontSize(14) }]}>• Senior Citizen ID</Text>
+                    <Text style={[styles.reqItem, { fontSize: getFontSize(14) }]}>• Emergency Contacts</Text>
                 </View>
 
                 {/* Inputs */}
-                <Text style={styles.label}>Pangalan(Name)</Text>
-                <TextInput style={styles.input} value={name} onChangeText={setName} />
+                <Text style={[styles.label, { fontSize: getFontSize(14) }]}>Pangalan(Name)</Text>
+                <TextInput style={[styles.input, { fontSize: getFontSize(16) }]} value={name} onChangeText={setName} />
 
-                <Text style={styles.label}>Password</Text>
-                <TextInput style={styles.input} value={password} onChangeText={setPassword} secureTextEntry />
+                <Text style={[styles.label, { fontSize: getFontSize(14) }]}>Password</Text>
+                <TextInput style={[styles.input, { fontSize: getFontSize(16) }]} value={password} onChangeText={setPassword} secureTextEntry />
 
-                <Text style={styles.label}>Kumpirmahin ang iyong Password</Text>
-                <TextInput style={styles.input} value={confirmPassword} onChangeText={setConfirmPassword} secureTextEntry />
+                <Text style={[styles.label, { fontSize: getFontSize(14) }]}>Kumpirmahin ang iyong Password</Text>
+                <TextInput style={[styles.input, { fontSize: getFontSize(16) }]} value={confirmPassword} onChangeText={setConfirmPassword} secureTextEntry />
 
-                <Text style={styles.label}>Contact Number</Text>
-                <TextInput style={styles.input} value={contact} onChangeText={setContact} keyboardType="phone-pad" />
+                <Text style={[styles.label, { fontSize: getFontSize(14) }]}>Contact Number</Text>
+                <TextInput style={[styles.input, { fontSize: getFontSize(16) }]} value={contact} onChangeText={setContact} keyboardType="phone-pad" />
 
                 {/* Gender Selection */}
-                <Text style={styles.label}>Kasarian (Gender)</Text>
+                <Text style={[styles.label, { fontSize: getFontSize(14) }]}>Kasarian (Gender)</Text>
                 <View style={styles.genderContainer}>
                     {['Male', 'Female', 'Others'].map((option) => (
                         <TouchableOpacity
@@ -160,7 +226,7 @@ export default function RegisterSeniorScreen() {
                             style={[styles.genderButton, gender === option && styles.genderButtonSelected]}
                             onPress={() => setGender(option)}
                         >
-                            <Text style={[styles.genderText, gender === option && styles.genderTextSelected]}>
+                            <Text style={[styles.genderText, gender === option && styles.genderTextSelected, { fontSize: getFontSize(14) }]}>
                                 {option}
                             </Text>
                         </TouchableOpacity>
@@ -168,28 +234,28 @@ export default function RegisterSeniorScreen() {
                 </View>
 
                 {/* Senior ID Upload */}
-                <Text style={styles.label}>Senior Citizen ID</Text>
+                <Text style={[styles.label, { fontSize: getFontSize(14) }]}>Senior Citizen ID</Text>
                 <TouchableOpacity style={styles.imagePicker} onPress={pickImage}>
                     {seniorIdImage ? (
                         <Image source={{ uri: seniorIdImage }} style={styles.idImage} />
                     ) : (
                         <View style={styles.uploadPlaceholder}>
                             <Ionicons name="camera" size={20} color="#6b7280" />
-                            <Text style={styles.uploadText}>Upload</Text>
+                            <Text style={[styles.uploadText, { fontSize: getFontSize(14) }]}>Upload</Text>
                         </View>
                     )}
                 </TouchableOpacity>
 
                 {/* Register Button */}
                 <TouchableOpacity style={styles.registerButton} onPress={handleRegister} disabled={isLoading}>
-                    <Text style={styles.registerButtonText}>Register</Text>
+                    <Text style={[styles.registerButtonText, { fontSize: getFontSize(18) }]}>Register</Text>
                 </TouchableOpacity>
 
                 {/* Login Link */}
                 <View style={styles.footer}>
-                    <Text style={styles.footerText}>May account na? </Text>
+                    <Text style={[styles.footerText, { fontSize: getFontSize(14) }]}>May account na? </Text>
                     <TouchableOpacity onPress={() => router.push('/login-senior')}>
-                        <Text style={styles.linkText}>Mag-login</Text>
+                        <Text style={[styles.linkText, { fontSize: getFontSize(14) }]}>Mag-login</Text>
                     </TouchableOpacity>
                 </View>
             </View>
@@ -263,6 +329,7 @@ const styles = StyleSheet.create({
     row: {
         flexDirection: 'row',
         justifyContent: 'space-between',
+        width: '100%',
         gap: 10,
     },
     halfInput: {
@@ -341,7 +408,7 @@ const styles = StyleSheet.create({
         backgroundColor: 'rgba(0, 0, 0, 0.5)',
     },
     modalContent: {
-        width: '80%',
+        width: '90%',
         backgroundColor: 'white',
         borderRadius: 20,
         padding: 20,
@@ -424,6 +491,26 @@ const styles = StyleSheet.create({
     },
     genderTextSelected: {
         color: '#fff',
+        fontWeight: 'bold',
+    },
+    consentText: {
+        fontSize: 14,
+        color: '#374151',
+        lineHeight: 22,
+        marginBottom: 20,
+        textAlign: 'justify'
+    },
+    consentButton: {
+        flex: 1,
+        height: 45,
+        borderRadius: 10,
+        justifyContent: 'center',
+        alignItems: 'center',
+        elevation: 2,
+    },
+    consentButtonText: {
+        color: '#fff',
+        fontSize: 16,
         fontWeight: 'bold',
     },
 });
