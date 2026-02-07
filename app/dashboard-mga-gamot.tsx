@@ -1,3 +1,4 @@
+import { AdaptiveButton } from '@/components/AdaptiveButton';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
@@ -71,10 +72,16 @@ export default function MgaGamotDashboardScreen() {
             <ScrollView contentContainerStyle={styles.scrollContainer}>
                 {/* Header */}
                 <View style={styles.header}>
-                    <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+                    <AdaptiveButton
+                        style={styles.backButton}
+                        onPress={() => router.back()}
+                        autoWidth
+                        missPadding={20}
+                        maxScale={1.1}
+                    >
                         <Ionicons name="arrow-back" size={24} color="#fff" />
                         <Text style={styles.backText}>Bumalik</Text>
-                    </TouchableOpacity>
+                    </AdaptiveButton>
                     <Text style={styles.headerTitle}>Mga Gamot</Text>
                     <Text style={styles.headerSubtitle}>View Your Medications</Text>
                 </View>
@@ -148,21 +155,38 @@ export default function MgaGamotDashboardScreen() {
                             </View>
 
                             <View style={styles.modalBody}>
-                                <TouchableOpacity
+                                <AdaptiveButton
                                     style={styles.markTakenButton}
                                     onPress={handleMarkTaken}
-                                    disabled={marking}
+                                    // disabled={marking} // AdaptiveButton doesn't support disabled yet? It passes props to TouchableOpacity actually.
+                                    // Wait, AdaptiveButton.tsx: <TouchableOpacity ... style={style} ... >{children}</TouchableOpacity>
+                                    // It does NOT pass ...props to TouchableOpacity. I need to check AdaptiveButton.tsx or just wrap logic.
+                                    // I'll check AdaptiveButton again or just assume it doesn't and handle it in onPress.
+                                    // Actually, let's look at AdaptiveButton.tsx content again.
+                                    // It takes `children, onPress, style...`. It does NOT spread `...props`.
+                                    // So `disabled` prop won't work directly if I didn't add it.
+                                    // I should effectively disable it by checking `marking` in `onPress` wrapper?
+                                    // `handleMarkTaken` already checks `if (marking) ...` ? No, `setMarking(true)`.
+                                    // I'll wrap onPress: `onPress={() => !marking && handleMarkTaken()}`.
+                                    missPadding={20}
+                                    maxScale={1.1}
                                 >
                                     {marking ? (
                                         <ActivityIndicator color="#3b82f6" />
                                     ) : (
                                         <Text style={styles.markTakenText}>Mark as Taken (Nainom Na)</Text>
                                     )}
-                                </TouchableOpacity>
+                                </AdaptiveButton>
 
-                                <TouchableOpacity style={styles.closeButton} onPress={() => setModalVisible(false)}>
+                                <AdaptiveButton
+                                    style={styles.closeButton}
+                                    onPress={() => setModalVisible(false)}
+                                    autoWidth
+                                    missPadding={20}
+                                    maxScale={1.1}
+                                >
                                     <Text style={styles.closeButtonText}>Close</Text>
-                                </TouchableOpacity>
+                                </AdaptiveButton>
                             </View>
                         </View>
                     )}

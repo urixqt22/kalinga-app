@@ -1,3 +1,4 @@
+import { AdaptiveButton } from '@/components/AdaptiveButton';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { doc, getDoc } from 'firebase/firestore';
@@ -42,10 +43,16 @@ export default function DashboardSeniorScreen() {
         <ScrollView contentContainerStyle={styles.container}>
             {/* Header */}
             <View style={styles.header}>
-                <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+                <AdaptiveButton
+                    style={styles.logoutButton}
+                    onPress={handleLogout}
+                    autoWidth
+                    missPadding={20}
+                    maxScale={1.1}
+                >
                     <Ionicons name="log-out-outline" size={20} color="#2563eb" />
                     <Text style={[styles.logoutText, { fontSize: getFontSize(14) }]}>Logout</Text>
-                </TouchableOpacity>
+                </AdaptiveButton>
                 <TouchableOpacity
                     style={styles.notificationContainer}
                     onPress={() => router.push('/dashboard-notifications-senior')}
@@ -70,38 +77,59 @@ export default function DashboardSeniorScreen() {
 
             {/* Menu Buttons */}
             <View style={styles.menuContainer}>
-                <TouchableOpacity style={styles.menuButton} onPress={() => router.push('/dashboard-kalusugan')}>
+                <AdaptiveButton
+                    style={styles.menuButton}
+                    onPress={() => router.push('/dashboard-kalusugan')}
+                    missPadding={15}
+                    maxScale={1.05}
+                >
                     <View style={styles.menuIconCircle}>
                         <Ionicons name="heart-outline" size={30} color="#fff" />
                     </View>
                     <Text style={[styles.menuText, { fontSize: getFontSize(18) }]}>Kalusugan</Text>
                     <Ionicons name="chevron-forward" size={24} color="#fff" />
-                </TouchableOpacity>
+                </AdaptiveButton>
 
-                <TouchableOpacity style={styles.menuButton} onPress={() => router.push('/dashboard-serbisyo')}>
+                <AdaptiveButton
+                    style={styles.menuButton}
+                    onPress={() => router.push('/dashboard-serbisyo')}
+                    missPadding={15}
+                    maxScale={1.05}
+                >
                     <View style={styles.menuIconCircle}>
                         <Ionicons name="newspaper-outline" size={30} color="#fff" />
                     </View>
                     <Text style={[styles.menuText, { fontSize: getFontSize(18) }]}>Serbisyo ng Gobyerno</Text>
                     <Ionicons name="chevron-forward" size={24} color="#fff" />
-                </TouchableOpacity>
+                </AdaptiveButton>
 
-                <TouchableOpacity style={styles.menuButton} onPress={() => router.push('/dashboard-pamilya')}>
+                <AdaptiveButton
+                    style={styles.menuButton}
+                    onPress={() => router.push('/dashboard-pamilya')}
+                    missPadding={15}
+                    maxScale={1.05}
+                >
                     <View style={styles.menuIconCircle}>
                         <Ionicons name="people-outline" size={30} color="#fff" />
                     </View>
                     <Text style={[styles.menuText, { fontSize: getFontSize(18) }]}>Pamilya</Text>
                     <Ionicons name="chevron-forward" size={24} color="#fff" />
-                </TouchableOpacity>
+                </AdaptiveButton>
             </View>
 
 
             {/* Footer Controls */}
             <View style={styles.footerControls}>
-                <TouchableOpacity style={styles.settingsButton} onPress={() => router.push('/dashboard-settings')}>
+                <AdaptiveButton
+                    style={styles.settingsButton}
+                    onPress={() => router.push('/dashboard-settings')}
+                    autoWidth
+                    missPadding={20}
+                    maxScale={1.1}
+                >
                     <Ionicons name="settings-outline" size={24} color="#2563eb" />
                     <Text style={styles.settingsText}>Settings</Text>
-                </TouchableOpacity>
+                </AdaptiveButton>
 
                 <TouchableOpacity style={styles.micButton}>
                     <Ionicons name="mic" size={32} color="#fff" />
@@ -170,11 +198,13 @@ const styles = StyleSheet.create({
         color: '#3b82f6',
     },
     menuContainer: {
-        gap: 15,
+        gap: 30,
         marginBottom: 40,
     },
     menuButton: {
         backgroundColor: '#3b82f6', // Bright blue
+        width: '95%',
+        alignSelf: 'center',
         flexDirection: 'row',
         alignItems: 'center',
         padding: 20,

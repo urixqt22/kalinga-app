@@ -26,6 +26,7 @@ export default function LandingPage() {
             </View>
 
             {/* Senior Mode Card */}
+            {/* Senior Mode Card */}
             <TouchableOpacity
                 style={styles.cardContainer}
                 onPress={() => selectRole('SENIOR')}
@@ -46,6 +47,7 @@ export default function LandingPage() {
                 </LinearGradient>
             </TouchableOpacity>
 
+            {/* Caretaker Mode Card */}
             {/* Caretaker Mode Card */}
             <TouchableOpacity
                 style={styles.cardContainer}

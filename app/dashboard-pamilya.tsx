@@ -1,3 +1,4 @@
+import { AdaptiveButton } from '@/components/AdaptiveButton';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
@@ -100,28 +101,52 @@ export default function PamilyaDashboardScreen() {
                     </View>
                 </View>
                 {/* Delete Option (Tiny x) */}
-                <TouchableOpacity onPress={() => handleDelete(contact.id)} style={{ padding: 5 }}>
+                <AdaptiveButton adaptive={!isCaretaker}
+                    onPress={() => handleDelete(contact.id)}
+                    style={{ padding: 5 }}
+                    autoWidth
+                    missPadding={15}
+                    maxScale={1.2}
+                >
                     <Ionicons name="close" size={16} color="#94a3b8" />
-                </TouchableOpacity>
+                </AdaptiveButton>
             </View>
 
             <View style={styles.actionsContainer}>
-                <TouchableOpacity style={[styles.actionButton, { backgroundColor: '#22c55e' }]}>
+                <AdaptiveButton adaptive={!isCaretaker}
+                    style={[styles.actionButton, { backgroundColor: '#22c55e' }]}
+                    containerStyle={{ flex: 1 }}
+                    onPress={() => { }}
+                    missPadding={10}
+                    maxScale={1.05}
+                >
                     <Ionicons name="call" size={20} color="#fff" />
-                    <Text style={styles.actionText}>Tawag</Text>
-                </TouchableOpacity>
+                    <Text style={styles.actionText}> Tawag</Text>
+                </AdaptiveButton>
 
-                <TouchableOpacity style={[styles.actionButton, { backgroundColor: '#3b82f6' }]}>
+                <AdaptiveButton adaptive={!isCaretaker}
+                    style={[styles.actionButton, { backgroundColor: '#3b82f6' }]}
+                    containerStyle={{ flex: 1 }}
+                    onPress={() => { }}
+                    missPadding={10}
+                    maxScale={1.05}
+                >
                     <Ionicons name="videocam" size={20} color="#fff" />
-                    <Text style={styles.actionText}>Video</Text>
-                </TouchableOpacity>
+                    <Text style={styles.actionText}> Video</Text>
+                </AdaptiveButton>
 
-                <TouchableOpacity style={[styles.actionButton, { backgroundColor: themeColor }]}>
+                <AdaptiveButton adaptive={!isCaretaker}
+                    style={[styles.actionButton, { backgroundColor: themeColor }]}
+                    containerStyle={{ flex: 1 }}
+                    onPress={() => { }}
+                    missPadding={10}
+                    maxScale={1.05}
+                >
                     <Ionicons name="chatbubble-ellipses-outline" size={20} color="#fff" />
-                    <Text style={styles.actionText}>Chat</Text>
-                </TouchableOpacity>
-            </View>
-        </View>
+                    <Text style={styles.actionText}> Chat</Text>
+                </AdaptiveButton>
+            </View >
+        </View >
     );
 
     return (
@@ -130,57 +155,88 @@ export default function PamilyaDashboardScreen() {
                 {/* Header */}
                 <View style={[styles.header, { backgroundColor: themeColor }]}>
                     <View style={styles.headerTop}>
-                        <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+                        <AdaptiveButton adaptive={!isCaretaker}
+                            style={styles.backButton}
+                            onPress={() => router.back()}
+                            autoWidth
+                            missPadding={20}
+                            maxScale={1.1}
+                        >
                             <Ionicons name="arrow-back" size={24} color="#fff" />
                             <Text style={styles.backText}>Bumalik</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity onPress={() => setModalVisible(true)}>
+                        </AdaptiveButton>
+                        <AdaptiveButton adaptive={!isCaretaker}
+                            onPress={() => setModalVisible(true)}
+                            autoWidth
+                            missPadding={20}
+                            maxScale={1.1}
+                        >
                             <Ionicons name="person-add" size={24} color="#fff" />
-                        </TouchableOpacity>
+                        </AdaptiveButton>
                     </View>
                     <Text style={styles.headerTitle}>Pamilya</Text>
                     <Text style={styles.headerSubtitle}>{isCaretaker ? 'Family Communication - Caretaker' : 'Family Communication'}</Text>
-                </View>
+                </View >
 
                 {/* Family Members List */}
-                <View style={styles.listContainer}>
-                    {loading ? (
-                        <ActivityIndicator size="large" color={themeColor} />
-                    ) : (
-                        <>
-                            {contacts.length === 0 ? (
-                                <View style={styles.emptyState}>
-                                    <MaterialCommunityIcons name="account-group-outline" size={60} color="#ccc" />
-                                    <Text style={styles.emptyText}>No family members added yet.</Text>
-                                    <TouchableOpacity style={[styles.addButton, { backgroundColor: themeColor }]} onPress={() => setModalVisible(true)}>
-                                        <Text style={styles.addButtonText}>Add Member</Text>
-                                    </TouchableOpacity>
-                                </View>
-                            ) : (
-                                contacts.map((contact) => (
-                                    <FamilyCard key={contact.id} contact={contact} />
-                                ))
-                            )}
-                        </>
-                    )}
-                </View>
+                < View style={styles.listContainer} >
+                    {
+                        loading ? (
+                            <ActivityIndicator size="large" color={themeColor} />
+                        ) : (
+                            <>
+                                {contacts.length === 0 ? (
+                                    <View style={styles.emptyState}>
+                                        <MaterialCommunityIcons name="account-group-outline" size={60} color="#ccc" />
+                                        <Text style={styles.emptyText}>No family members added yet.</Text>
+                                        <AdaptiveButton adaptive={!isCaretaker}
+                                            style={[styles.addButton, { backgroundColor: themeColor }]}
+                                            containerStyle={{ alignSelf: 'center' }}
+                                            onPress={() => setModalVisible(true)}
+                                            missPadding={15}
+                                            maxScale={1.05}
+                                            autoWidth
+                                        >
+                                            <Text style={styles.addButtonText}>Add Member</Text>
+                                        </AdaptiveButton>
+                                    </View >
+                                ) : (
+                                    contacts.map((contact) => (
+                                        <FamilyCard key={contact.id} contact={contact} />
+                                    ))
+                                )}
+                            </>
+                        )}
+                </View >
 
-            </ScrollView>
+            </ScrollView >
 
             {/* Footer Buttons */}
-            <View style={styles.footer}>
-                <TouchableOpacity style={styles.emergencyButton}>
+            < View style={styles.footer} >
+                <AdaptiveButton adaptive={!isCaretaker}
+                    style={styles.emergencyButton}
+                    containerStyle={{ flex: 1 }}
+                    onPress={() => { }}
+                    missPadding={15}
+                    maxScale={1.05}
+                >
                     <Ionicons name="call" size={24} color="#fff" style={{ marginRight: 10 }} />
                     <Text style={styles.emergencyText}>Emergency Hotline 911</Text>
-                </TouchableOpacity>
+                </AdaptiveButton>
 
-                <TouchableOpacity style={styles.micButton}>
+                <AdaptiveButton adaptive={!isCaretaker}
+                    style={styles.micButton}
+                    onPress={() => { }}
+                    missPadding={15}
+                    maxScale={1.1}
+                    autoWidth
+                >
                     <Ionicons name="mic" size={28} color="#fff" />
-                </TouchableOpacity>
-            </View>
+                </AdaptiveButton>
+            </View >
 
             {/* Add Contact Modal */}
-            <Modal
+            < Modal
                 animationType="slide"
                 transparent={true}
                 visible={modalVisible}
@@ -229,8 +285,8 @@ export default function PamilyaDashboardScreen() {
                         </View>
                     </View>
                 </View>
-            </Modal>
-        </View>
+            </Modal >
+        </View >
     );
 }
 

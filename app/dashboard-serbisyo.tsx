@@ -1,6 +1,7 @@
+import { AdaptiveButton } from '@/components/AdaptiveButton';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
 export default function SerbisyoDashboardScreen() {
     const router = useRouter();
@@ -9,10 +10,16 @@ export default function SerbisyoDashboardScreen() {
         <ScrollView contentContainerStyle={styles.container}>
             {/* Header */}
             <View style={styles.header}>
-                <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+                <AdaptiveButton
+                    style={styles.backButton}
+                    onPress={() => router.back()}
+                    autoWidth
+                    missPadding={20}
+                    maxScale={1.1}
+                >
                     <Ionicons name="arrow-back" size={24} color="#fff" />
                     <Text style={styles.backText}>Bumalik</Text>
-                </TouchableOpacity>
+                </AdaptiveButton>
                 <Text style={styles.headerTitle}>Serbisyo ng Gobyerno</Text>
                 <Text style={styles.headerSubtitle}>Government Services</Text>
             </View>
@@ -21,7 +28,12 @@ export default function SerbisyoDashboardScreen() {
             <View style={styles.listContainer}>
 
                 {/* SSS */}
-                <TouchableOpacity style={styles.serviceCard} onPress={() => router.push('/sss-pension')}>
+                <AdaptiveButton
+                    style={styles.serviceCard}
+                    onPress={() => router.push('/sss-pension')}
+                    missPadding={15}
+                    maxScale={1.05}
+                >
                     <View style={styles.iconBox}>
                         <Ionicons name="card-outline" size={24} color="#2563eb" />
                     </View>
@@ -30,10 +42,15 @@ export default function SerbisyoDashboardScreen() {
                         <Text style={styles.serviceSubtitle}>Check pension status</Text>
                     </View>
                     <Ionicons name="chevron-forward" size={24} color="#3b82f6" />
-                </TouchableOpacity>
+                </AdaptiveButton>
 
                 {/* PhilHealth */}
-                <TouchableOpacity style={styles.serviceCard}>
+                <AdaptiveButton
+                    style={styles.serviceCard}
+                    onPress={() => { }} // No route yet? Keeping empty helper
+                    missPadding={15}
+                    maxScale={1.05}
+                >
                     <View style={styles.iconBox}>
                         <Ionicons name="person" size={24} color="#2563eb" />
                         <View style={styles.heartBadge}>
@@ -45,10 +62,15 @@ export default function SerbisyoDashboardScreen() {
                         <Text style={styles.serviceSubtitle}>Health insurance info</Text>
                     </View>
                     <Ionicons name="chevron-forward" size={24} color="#3b82f6" />
-                </TouchableOpacity>
+                </AdaptiveButton>
 
                 {/* DSWD */}
-                <TouchableOpacity style={styles.serviceCard}>
+                <AdaptiveButton
+                    style={styles.serviceCard}
+                    onPress={() => { }} // No route yet
+                    missPadding={15}
+                    maxScale={1.05}
+                >
                     <View style={styles.iconBox}>
                         <MaterialCommunityIcons name="hand-heart" size={24} color="#2563eb" />
                     </View>
@@ -57,15 +79,20 @@ export default function SerbisyoDashboardScreen() {
                         <Text style={styles.serviceSubtitle}>Social welfare services</Text>
                     </View>
                     <Ionicons name="chevron-forward" size={24} color="#3b82f6" />
-                </TouchableOpacity>
+                </AdaptiveButton>
 
             </View>
 
             {/* Footer Button */}
-            <TouchableOpacity style={styles.footerButton}>
+            <AdaptiveButton
+                style={styles.footerButton}
+                onPress={() => { }} // No action defined in original file
+                missPadding={20}
+                maxScale={1.05}
+            >
                 <Ionicons name="mic" size={28} color="#fff" style={{ marginRight: 10 }} />
                 <Text style={styles.footerButtonText}>Magsalita</Text>
-            </TouchableOpacity>
+            </AdaptiveButton>
 
         </ScrollView>
     );

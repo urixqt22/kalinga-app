@@ -1,3 +1,4 @@
+import { AdaptiveButton } from '@/components/AdaptiveButton';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
@@ -72,10 +73,16 @@ export default function SeniorNotificationsScreen() {
         <ScrollView contentContainerStyle={styles.container}>
             {/* Header */}
             <View style={styles.header}>
-                <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+                <AdaptiveButton
+                    style={styles.backButton}
+                    onPress={() => router.back()}
+                    autoWidth
+                    missPadding={10}
+                    maxScale={1.1}
+                >
                     <Ionicons name="arrow-back" size={24} color={themeColor} />
                     <Text style={[styles.backText, { color: themeColor }]}>Bumalik</Text>
-                </TouchableOpacity>
+                </AdaptiveButton>
                 <Text style={[styles.headerTitle, { color: themeColor }]}>Notifications</Text>
             </View>
 
@@ -136,10 +143,16 @@ export default function SeniorNotificationsScreen() {
                             </View>
 
                             {/* Done Button */}
-                            <TouchableOpacity onPress={() => handleMarkAsDone(notif)} style={styles.closeButton}>
+                            <AdaptiveButton
+                                onPress={() => handleMarkAsDone(notif)}
+                                style={styles.closeButton}
+                                missPadding={15}
+                                maxScale={1.2}
+                                autoWidth
+                            >
                                 <Ionicons name="checkmark-circle" size={28} color="#fff" />
                                 <Text style={styles.doneText}>Done</Text>
-                            </TouchableOpacity>
+                            </AdaptiveButton>
                         </View>
                     ))}
                 </View>

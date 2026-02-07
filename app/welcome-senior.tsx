@@ -1,3 +1,4 @@
+import { AdaptiveButton } from '@/components/AdaptiveButton';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
@@ -25,24 +26,28 @@ export default function WelcomeSeniorScreen() {
             </View>
 
             <View style={styles.buttonContainer}>
-                <TouchableOpacity
+                <AdaptiveButton
                     style={styles.loginButton}
                     onPress={() => router.push('/login-senior')}
+                    missPadding={10}
+                    maxScale={1.05}
                 >
                     <Text style={styles.loginButtonText}>Mag-login (Login)</Text>
-                </TouchableOpacity>
+                </AdaptiveButton>
 
-                <TouchableOpacity
+                <AdaptiveButton
                     style={styles.registerButton}
                     onPress={() => router.push('/register-senior')}
+                    missPadding={10}
+                    maxScale={1.05}
                 >
                     <Text style={styles.registerButtonText}>Mag-rehistro (Register)</Text>
-                </TouchableOpacity>
+                </AdaptiveButton>
             </View>
 
-            <TouchableOpacity style={styles.sosButton} onPress={() => router.push('/emergency')}>
+            <AdaptiveButton style={styles.sosButton} onPress={() => router.push('/emergency')} missPadding={30} maxScale={1.05}>
                 <Text style={styles.sosText}>EMERGENCY SOS</Text>
-            </TouchableOpacity>
+            </AdaptiveButton>
             <Text style={styles.sosSubtext}>Tap for immediate help / Tapikin para sa tulong</Text>
 
             <Text style={styles.version}>Version 1.0.0</Text>
@@ -98,7 +103,8 @@ const styles = StyleSheet.create({
     },
     loginButton: {
         backgroundColor: '#2563eb',
-        width: '100%',
+        width: '95%',
+        alignSelf: 'center',
         padding: 18,
         borderRadius: 30,
         alignItems: 'center',
@@ -113,7 +119,8 @@ const styles = StyleSheet.create({
         backgroundColor: '#2563eb', // Detailed design shows same color or slightly lighter? Sticking to primary for consistency or checking image. 
         // Image shows lighter blue/purple for registers sometimes, but let's stick to primary based on "LOGIN 2" image which shows both blue.
         // Actually looking at "LOGIN 2" image (step 77), the buttons are both blue.
-        width: '100%',
+        width: '95%',
+        alignSelf: 'center',
         padding: 18,
         borderRadius: 30,
         alignItems: 'center',
@@ -127,7 +134,8 @@ const styles = StyleSheet.create({
     },
     sosButton: {
         backgroundColor: '#ef4444', // Red
-        width: '90%',
+        width: '95%',
+        alignSelf: 'center',
         padding: 15,
         borderRadius: 30,
         alignItems: 'center',
