@@ -3,6 +3,7 @@ import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
+import { AdaptiveButton } from '@/components/AdaptiveButton';
 import { Alert } from 'react-native';
 import { getEmailByName, getUserRole, loginUser, logoutUser } from '../services/auth';
 
@@ -93,17 +94,19 @@ export default function LoginSeniorScreen() {
                     placeholder=""
                 />
 
-                <TouchableOpacity
+                <AdaptiveButton
                     style={[styles.loginButton, isLoading && { opacity: 0.7 }]}
                     onPress={handleLogin}
-                    disabled={isLoading}
+                    // disabled={isLoading} // AdaptiveButton updates needed for proper disabled support, relying on handler check for now
+                    missPadding={30}
+                    maxScale={1.05}
                 >
                     {isLoading ? (
                         <Text style={styles.loginButtonText}>Loading...</Text>
                     ) : (
                         <Text style={styles.loginButtonText}>Login</Text>
                     )}
-                </TouchableOpacity>
+                </AdaptiveButton>
 
                 <TouchableOpacity onPress={() => console.log('Forgot Password')}>
                     <Text style={styles.forgotPassword}>Nakalimutan ang password?</Text>
@@ -191,6 +194,8 @@ const styles = StyleSheet.create({
         backgroundColor: '#2563eb', // Blue
         borderRadius: 25,
         height: 55,
+        width: '95%',
+        alignSelf: 'center',
         justifyContent: 'center',
         alignItems: 'center',
         marginTop: 20,

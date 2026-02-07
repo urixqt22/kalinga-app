@@ -1,3 +1,4 @@
+import { AdaptiveButton } from '@/components/AdaptiveButton';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { doc, getDoc } from 'firebase/firestore';
@@ -60,10 +61,16 @@ export default function AppointmentDashboardScreen() {
         <ScrollView contentContainerStyle={styles.container}>
             {/* Header */}
             <View style={styles.header}>
-                <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+                <AdaptiveButton
+                    style={styles.backButton}
+                    onPress={() => router.back()}
+                    autoWidth
+                    missPadding={20}
+                    maxScale={1.1}
+                >
                     <Ionicons name="arrow-back" size={24} color="#fff" />
                     <Text style={styles.backText}>Bumalik</Text>
-                </TouchableOpacity>
+                </AdaptiveButton>
                 <Text style={styles.headerTitle}>Appointment sa Doktor</Text>
                 <Text style={styles.headerSubtitle}>Doctor appointments</Text>
             </View>
@@ -106,21 +113,27 @@ export default function AppointmentDashboardScreen() {
 
                                     {/* Actions for Caretaker */}
                                     <View style={styles.actionRow}>
-                                        <TouchableOpacity
+                                        <AdaptiveButton
                                             style={[styles.actionButton, { backgroundColor: '#dcfce7' }]}
                                             onPress={() => handleUpdateStatus(apt.id, 'Completed')}
+                                            autoWidth
+                                            missPadding={20}
+                                            maxScale={1.1}
                                         >
                                             <Ionicons name="checkmark" size={20} color="#22c55e" />
                                             <Text style={[styles.actionText, { color: '#166534' }]}>Done</Text>
-                                        </TouchableOpacity>
+                                        </AdaptiveButton>
 
-                                        <TouchableOpacity
+                                        <AdaptiveButton
                                             style={[styles.actionButton, { backgroundColor: '#fee2e2' }]}
                                             onPress={() => handleUpdateStatus(apt.id, 'Cancelled')}
+                                            autoWidth
+                                            missPadding={20}
+                                            maxScale={1.1}
                                         >
                                             <Ionicons name="close" size={20} color="#ef4444" />
                                             <Text style={[styles.actionText, { color: '#991b1b' }]}>Cancel</Text>
-                                        </TouchableOpacity>
+                                        </AdaptiveButton>
                                     </View>
                                 </View>
                             </View>

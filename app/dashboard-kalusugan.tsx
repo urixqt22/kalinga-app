@@ -1,22 +1,20 @@
+import { AdaptiveButton } from '@/components/AdaptiveButton';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { useEffect, useState } from 'react'; // Added imports
+import { useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { auth } from '../configs/firebase'; // Added import
-import { getMedicationsRealtime, Medication } from '../services/medication'; // Added import
+import { auth } from '../configs/firebase';
+import { getMedicationsRealtime, Medication } from '../services/medication';
 
 export default function KalusuganDashboardScreen() {
     const router = useRouter();
-    const [nextMed, setNextMed] = useState<Medication | null>(null); // Added state
+    const [nextMed, setNextMed] = useState<Medication | null>(null);
 
     useEffect(() => {
         if (!auth.currentUser) return;
 
         const unsubscribe = getMedicationsRealtime(auth.currentUser.uid, (fetchedMeds) => {
-            // Filter only Scheduled meds
             const scheduled = fetchedMeds.filter(m => m.status === 'Scheduled');
-
-            // Sort by time
             const sorted = scheduled.sort((a, b) => {
                 const parseTime = (t: string) => {
                     const [time, modifier] = t.split(' ');
@@ -28,22 +26,47 @@ export default function KalusuganDashboardScreen() {
                 };
                 return parseTime(a.time).localeCompare(parseTime(b.time));
             });
-
-            // Pick the first one
             setNextMed(sorted.length > 0 ? sorted[0] : null);
         });
 
         return () => unsubscribe();
     }, []);
 
+    const menuItems = [
+        {
+            title: 'Mga Gamot',
+            subtitle: 'View Your Medications',
+            icon: 'medkit-outline',
+            route: '/dashboard-mga-gamot'
+        },
+        {
+            title: 'Presyon at Sugar',
+            subtitle: 'Blood pressure & glucose',
+            icon: 'pulse-outline',
+            route: '/dashboard-presyon'
+        },
+        {
+            title: 'Appointment sa Doctor',
+            subtitle: 'Schedule & view appointments',
+            icon: 'calendar-outline',
+            route: '/dashboard-appointment'
+        },
+    ];
+
     return (
         <ScrollView contentContainerStyle={styles.container}>
             {/* Header */}
             <View style={styles.header}>
-                <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+                <AdaptiveButton
+                    style={styles.backButton}
+                    onPress={() => router.back()}
+                    autoWidth
+                    missPadding={15}
+                    maxScale={1.1}
+                >
                     <Ionicons name="arrow-back" size={24} color="#fff" />
                     <Text style={styles.backText}>Bumalik</Text>
-                </TouchableOpacity>
+                </AdaptiveButton>
                 <Text style={styles.headerTitle}>Kalusugan</Text>
                 <Text style={styles.headerSubtitle}>Health Management</Text>
             </View>
@@ -71,47 +94,38 @@ export default function KalusuganDashboardScreen() {
                 </View>
             )}
 
-            {/* Menu Options */}
+            {/* Menu Options - Vertical List (3 Items) */}
             <View style={styles.menuContainer}>
-                <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/dashboard-mga-gamot')}>
-                    <View style={[styles.menuIconBox, { backgroundColor: '#dbeafe' }]}>
-                        <Ionicons name="medkit-outline" size={24} color="#2563eb" />
-                    </View>
-                    <View style={styles.menuTextContainer}>
-                        <Text style={styles.menuTitle}>Mga Gamot</Text>
-                        <Text style={styles.menuSubtitle}>View Your Medications</Text>
-                    </View>
-                    <Ionicons name="chevron-forward" size={24} color="#3b82f6" />
-                </TouchableOpacity>
-
-                <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/dashboard-presyon')}>
-                    <View style={[styles.menuIconBox, { backgroundColor: '#dbeafe' }]}>
-                        <Ionicons name="pulse-outline" size={24} color="#2563eb" />
-                    </View>
-                    <View style={styles.menuTextContainer}>
-                        <Text style={styles.menuTitle}>Presyon at Sugar</Text>
-                        <Text style={styles.menuSubtitle}>Blood pressure & glucose</Text>
-                    </View>
-                    <Ionicons name="chevron-forward" size={24} color="#3b82f6" />
-                </TouchableOpacity>
-
-                <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/dashboard-appointment')}>
-                    <View style={[styles.menuIconBox, { backgroundColor: '#dbeafe' }]}>
-                        <Ionicons name="calendar-outline" size={24} color="#2563eb" />
-                    </View>
-                    <View style={styles.menuTextContainer}>
-                        <Text style={styles.menuTitle}>Appointment sa Doctor</Text>
-                        <Text style={styles.menuSubtitle}>Schedule & view appointments</Text>
-                    </View>
-                    <Ionicons name="chevron-forward" size={24} color="#3b82f6" />
-                </TouchableOpacity>
+                {menuItems.map((item, index) => (
+                    <AdaptiveButton
+                        key={index}
+                        style={styles.menuItem}
+                        onPress={() => router.push(item.route as any)}
+                        missPadding={15}
+                        maxScale={1.05}
+                    >
+                        <View style={[styles.menuIconBox, { backgroundColor: '#dbeafe' }]}>
+                            <Ionicons name={item.icon as any} size={24} color="#2563eb" />
+                        </View>
+                        <View style={styles.menuTextContainer}>
+                            <Text style={styles.menuTitle}>{item.title}</Text>
+                            <Text style={styles.menuSubtitle}>{item.subtitle}</Text>
+                        </View>
+                        <Ionicons name="chevron-forward" size={24} color="#3b82f6" />
+                    </AdaptiveButton>
+                ))}
             </View>
 
-            {/* Footer Button */}
-            <TouchableOpacity style={styles.footerButton}>
+            {/* Footer Button - Reverted to Full Width */}
+            <AdaptiveButton
+                style={styles.footerButton}
+                onPress={() => { }}
+                missPadding={20}
+                maxScale={1.05}
+            >
                 <Ionicons name="mic" size={28} color="#fff" style={{ marginRight: 10 }} />
                 <Text style={styles.footerButtonText}>Magsalita</Text>
-            </TouchableOpacity>
+            </AdaptiveButton>
 
         </ScrollView>
     );
@@ -120,10 +134,10 @@ export default function KalusuganDashboardScreen() {
 const styles = StyleSheet.create({
     container: {
         flexGrow: 1,
-        backgroundColor: '#f8fafc', // Very light blue/gray background
+        backgroundColor: '#f8fafc',
     },
     header: {
-        backgroundColor: '#3b82f6', // Bright Blue
+        backgroundColor: '#3b82f6',
         paddingTop: 60,
         paddingHorizontal: 20,
         paddingBottom: 30,
@@ -180,7 +194,7 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
     },
     reminderSubtitle: {
-        color: '#dbeafe', // Light blue text
+        color: '#dbeafe',
         fontSize: 14,
     },
     menuContainer: {
@@ -194,7 +208,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         marginBottom: 15,
         borderWidth: 1,
-        borderColor: '#bfdbfe', // Light blue border
+        borderColor: '#bfdbfe',
     },
     menuIconBox: {
         width: 50,
@@ -210,11 +224,11 @@ const styles = StyleSheet.create({
     menuTitle: {
         fontSize: 18,
         fontWeight: 'bold',
-        color: '#1e3a8a', // Dark blue
+        color: '#1e3a8a',
     },
     menuSubtitle: {
         fontSize: 13,
-        color: '#64748b', // Gray
+        color: '#64748b',
     },
     footerButton: {
         backgroundColor: '#2563eb',

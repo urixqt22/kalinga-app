@@ -1,3 +1,4 @@
+import { AdaptiveButton } from '@/components/AdaptiveButton';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
@@ -247,9 +248,9 @@ export default function RegisterSeniorScreen() {
                 </TouchableOpacity>
 
                 {/* Register Button */}
-                <TouchableOpacity style={styles.registerButton} onPress={handleRegister} disabled={isLoading}>
+                <AdaptiveButton style={styles.registerButton} onPress={handleRegister} missPadding={30} maxScale={1.05}>
                     <Text style={[styles.registerButtonText, { fontSize: getFontSize(18) }]}>Register</Text>
-                </TouchableOpacity>
+                </AdaptiveButton>
 
                 {/* Login Link */}
                 <View style={styles.footer}>
@@ -338,6 +339,8 @@ const styles = StyleSheet.create({
     registerButton: {
         backgroundColor: '#2563eb',
         padding: 16,
+        width: '95%',
+        alignSelf: 'center',
         borderRadius: 30,
         alignItems: 'center',
         marginTop: 10,
