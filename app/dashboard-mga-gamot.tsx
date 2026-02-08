@@ -1,13 +1,24 @@
 import { AdaptiveButton } from '@/components/AdaptiveButton';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { useIsFocused } from '@react-navigation/native';
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { CopilotStep, walkthroughable } from 'react-native-copilot';
 import { auth } from '../configs/firebase';
 import { getMedicationsRealtime, Medication, updateMedicationStatus } from '../services/medication';
 
+const WalkthroughableView = walkthroughable(View);
+const WalkthroughableTouchableOpacity = walkthroughable(TouchableOpacity);
+
+const FocusedCopilotStep = ({ active, children, ...props }: any) => {
+    if (!active) return children;
+    return <CopilotStep {...props}>{children}</CopilotStep>;
+};
+
 export default function MgaGamotDashboardScreen() {
     const router = useRouter();
+    const isFocused = useIsFocused();
     const [meds, setMeds] = useState<Medication[]>([]);
     const [loading, setLoading] = useState(true);
 
@@ -72,32 +83,57 @@ export default function MgaGamotDashboardScreen() {
             <ScrollView contentContainerStyle={styles.scrollContainer}>
                 {/* Header */}
                 <View style={styles.header}>
-                    <AdaptiveButton
-                        style={styles.backButton}
-                        onPress={() => router.back()}
-                        autoWidth
-                        missPadding={20}
-                        maxScale={1.1}
-                    >
-                        <Ionicons name="arrow-back" size={24} color="#fff" />
-                        <Text style={styles.backText}>Bumalik</Text>
-                    </AdaptiveButton>
+                    <FocusedCopilotStep active={isFocused} text="Pindutin dito para bumalik sa dashboard." order={nextUpMed ? 3 : 2} name="back-btn">
+                        <WalkthroughableView style={{ alignSelf: 'flex-start' }}>
+                            <AdaptiveButton
+                                style={styles.backButton}
+                                onPress={() => router.back()}
+                                autoWidth
+                                missPadding={20}
+                                maxScale={1.1}
+                            >
+                                <Ionicons name="arrow-back" size={24} color="#fff" />
+                                <Text style={styles.backText}>Bumalik</Text>
+                            </AdaptiveButton>
+                        </WalkthroughableView>
+                    </FocusedCopilotStep>
                     <Text style={styles.headerTitle}>Mga Gamot</Text>
                     <Text style={styles.headerSubtitle}>View Your Medications</Text>
                 </View>
 
                 {/* Next Up Card */}
-                {nextUpMed && (
-                    <TouchableOpacity style={styles.nextUpCard} onPress={() => handleMedPress(nextUpMed)}>
-                        <View style={styles.nextUpIconCircle}>
-                            <Ionicons name="notifications" size={30} color="#fff" />
-                        </View>
-                        <View>
-                            <Text style={styles.nextUpTitle}>Next Up: {nextUpMed.name} {nextUpMed.dosage}</Text>
-                            <Text style={styles.nextUpSubtitle}>{nextUpMed.time}</Text>
-                        </View>
-                    </TouchableOpacity>
+                {nextUpMed ? (
+                    <FocusedCopilotStep active={isFocused} text="Ito ang susunod mong iinumin. Pindutin para markahan." order={1} name="next-up">
+                        <WalkthroughableTouchableOpacity style={styles.nextUpCard} onPress={() => handleMedPress(nextUpMed)}>
+                            <View style={styles.nextUpIconCircle}>
+                                <Ionicons name="notifications" size={30} color="#fff" />
+                            </View>
+                            <View>
+                                <Text style={styles.nextUpTitle}>Next Up: {nextUpMed.name} {nextUpMed.dosage}</Text>
+                                <Text style={styles.nextUpSubtitle}>{nextUpMed.time}</Text>
+                            </View>
+                        </WalkthroughableTouchableOpacity>
+                    </FocusedCopilotStep>
+                ) : (
+                    /* Show 'All Clear' step if no next up med AND list is not empty (handled below, this block was duplicate) */
+                    null
                 )}
+
+                {/* All Clear Card (Added to match Kalusugan style if all taken) */}
+                {!loading && meds.length > 0 && !nextUpMed && (
+                    <FocusedCopilotStep active={isFocused} text="Mahusay! Tapos na ang lahat ng gamot ngayong araw." order={1} name="all-clear-card">
+                        <WalkthroughableView style={[styles.nextUpCard, { backgroundColor: '#10b981' }]}>
+                            <View style={styles.nextUpIconCircle}>
+                                <Ionicons name="checkmark-done" size={30} color="#fff" />
+                            </View>
+                            <View>
+                                <Text style={styles.nextUpTitle}>All Clear!</Text>
+                                <Text style={styles.nextUpSubtitle}>Nainom na ang lahat ng gamot.</Text>
+                            </View>
+                        </WalkthroughableView>
+                    </FocusedCopilotStep>
+                )}
+
 
                 {/* Medication List */}
                 <View style={styles.listContainer}>
@@ -105,28 +141,66 @@ export default function MgaGamotDashboardScreen() {
                         <ActivityIndicator size="large" color="#3b82f6" />
                     ) : (
                         <>
-                            {meds.map((med) => (
-                                <TouchableOpacity
-                                    key={med.id}
-                                    style={[styles.medCard, med.status === 'Taken' && styles.medCardTaken]}
-                                    onPress={() => handleMedPress(med)}
-                                    disabled={med.status === 'Taken'}
-                                >
-                                    <View style={[styles.medIconBox, med.status === 'Taken' && { backgroundColor: '#dcfce7' }]}>
-                                        <MaterialCommunityIcons
-                                            name={med.status === 'Taken' ? "check" : "pill"}
-                                            size={24}
-                                            color={med.status === 'Taken' ? "#22c55e" : "#3b82f6"}
-                                        />
-                                    </View>
-                                    <View style={[med.status === 'Taken' && { opacity: 1 }]}>
-                                        <Text style={[styles.medName, med.status === 'Taken' && { color: '#374151' }]}>
-                                            {med.name} {med.dosage}
-                                        </Text>
-                                        <Text style={styles.medTime}>{med.time} • {med.status}</Text>
-                                    </View>
-                                </TouchableOpacity>
-                            ))}
+                            {meds.map((med, index) => {
+                                // Only highlight the FIRST scheduled medication in the list
+                                const isFirstScheduled = med.status === 'Scheduled' && meds.findIndex(m => m.status === 'Scheduled') === index;
+
+                                // Or if we already have "Next Up" step, maybe we don't need to highlight the list item specifically?
+                                // User said "When a medicine is scheduled...". The Next Up card is good.
+                                // But maybe point to the list too?
+                                // Let's simplify: If Next Up card exists, that's the primary action.
+                                // If I wrap the list item, it might be redundant or helpful. 
+                                // Let's wrap the first list item as a secondary step (Order 2) if it's scheduled.
+
+                                if (isFirstScheduled) {
+                                    return (
+                                        <FocusedCopilotStep key={med.id} active={isFocused} text="Maaari mo ring pindutin dito sa listahan." order={2} name="first-med-item">
+                                            <WalkthroughableTouchableOpacity
+                                                style={[styles.medCard, med.status === 'Taken' && styles.medCardTaken]}
+                                                onPress={() => handleMedPress(med)}
+                                                disabled={med.status === 'Taken'}
+                                            >
+                                                <View style={[styles.medIconBox, med.status === 'Taken' && { backgroundColor: '#dcfce7' }]}>
+                                                    <MaterialCommunityIcons
+                                                        name={med.status === 'Taken' ? "check" : "pill"}
+                                                        size={24}
+                                                        color={med.status === 'Taken' ? "#22c55e" : "#3b82f6"}
+                                                    />
+                                                </View>
+                                                <View style={[med.status === 'Taken' && { opacity: 1 }]}>
+                                                    <Text style={[styles.medName, med.status === 'Taken' && { color: '#374151' }]}>
+                                                        {med.name} {med.dosage}
+                                                    </Text>
+                                                    <Text style={styles.medTime}>{med.time} • {med.status}</Text>
+                                                </View>
+                                            </WalkthroughableTouchableOpacity>
+                                        </FocusedCopilotStep>
+                                    );
+                                }
+
+                                return (
+                                    <TouchableOpacity
+                                        key={med.id}
+                                        style={[styles.medCard, med.status === 'Taken' && styles.medCardTaken]}
+                                        onPress={() => handleMedPress(med)}
+                                        disabled={med.status === 'Taken'}
+                                    >
+                                        <View style={[styles.medIconBox, med.status === 'Taken' && { backgroundColor: '#dcfce7' }]}>
+                                            <MaterialCommunityIcons
+                                                name={med.status === 'Taken' ? "check" : "pill"}
+                                                size={24}
+                                                color={med.status === 'Taken' ? "#22c55e" : "#3b82f6"}
+                                            />
+                                        </View>
+                                        <View style={[med.status === 'Taken' && { opacity: 1 }]}>
+                                            <Text style={[styles.medName, med.status === 'Taken' && { color: '#374151' }]}>
+                                                {med.name} {med.dosage}
+                                            </Text>
+                                            <Text style={styles.medTime}>{med.time} • {med.status}</Text>
+                                        </View>
+                                    </TouchableOpacity>
+                                );
+                            })}
                             {meds.length === 0 && (
                                 <Text style={{ textAlign: 'center', color: '#64748b', marginTop: 20 }}>
                                     No medications scheduled.

@@ -1,18 +1,29 @@
 import { AdaptiveButton } from '@/components/AdaptiveButton';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { useIsFocused } from '@react-navigation/native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { CopilotStep, walkthroughable } from 'react-native-copilot';
 import { auth } from '../configs/firebase';
 import { getLinkedElder } from '../services/connection';
 import { addFamilyContact, deleteFamilyContact, FamilyContact, getFamilyContactsRealtime } from '../services/family';
+
+const WalkthroughableView = walkthroughable(View);
+
+const FocusedCopilotStep = ({ active, children, ...props }: any) => {
+    if (!active) return children;
+    return <CopilotStep {...props}>{children}</CopilotStep>;
+};
 
 export default function PamilyaDashboardScreen() {
     const router = useRouter();
     const { role } = useLocalSearchParams();
     const isCaretaker = role === 'caretaker';
+    const isSenior = !isCaretaker; // Helper for readability
     const themeColor = isCaretaker ? '#a855f7' : '#3b82f6';
     const textColor = isCaretaker ? '#6b21a8' : '#1e3a8a';
+    const isFocused = useIsFocused();
 
     // State
     const [contacts, setContacts] = useState<FamilyContact[]>([]);
@@ -149,30 +160,45 @@ export default function PamilyaDashboardScreen() {
         </View >
     );
 
+    const hasContacts = contacts.length > 0;
+    const emergencyOrder = hasContacts ? 3 : 2;
+    const micOrder = hasContacts ? 4 : 3;
+    const backOrder = hasContacts ? 5 : 4;
+
     return (
         <View style={styles.mainContainer}>
             <ScrollView contentContainerStyle={styles.scrollContainer}>
                 {/* Header */}
                 <View style={[styles.header, { backgroundColor: themeColor }]}>
                     <View style={styles.headerTop}>
-                        <AdaptiveButton adaptive={!isCaretaker}
-                            style={styles.backButton}
-                            onPress={() => router.back()}
-                            autoWidth
-                            missPadding={20}
-                            maxScale={1.1}
-                        >
-                            <Ionicons name="arrow-back" size={24} color="#fff" />
-                            <Text style={styles.backText}>Bumalik</Text>
-                        </AdaptiveButton>
-                        <AdaptiveButton adaptive={!isCaretaker}
-                            onPress={() => setModalVisible(true)}
-                            autoWidth
-                            missPadding={20}
-                            maxScale={1.1}
-                        >
-                            <Ionicons name="person-add" size={24} color="#fff" />
-                        </AdaptiveButton>
+                        {/* Back Button - Step 4 or 5 */}
+                        <FocusedCopilotStep active={isFocused && isSenior && !modalVisible} text="Pindutin dito para bumalik." order={backOrder} name="back-btn">
+                            <WalkthroughableView style={{ alignSelf: 'flex-start' }}>
+                                <AdaptiveButton adaptive={!isCaretaker}
+                                    style={styles.backButton}
+                                    onPress={() => router.back()}
+                                    autoWidth
+                                    missPadding={20}
+                                    maxScale={1.1}
+                                >
+                                    <Ionicons name="arrow-back" size={24} color="#fff" />
+                                    <Text style={styles.backText}>Bumalik</Text>
+                                </AdaptiveButton>
+                            </WalkthroughableView>
+                        </FocusedCopilotStep>
+
+                        <FocusedCopilotStep active={isFocused && isSenior && !modalVisible && hasContacts} text="Pindutin dito para magdagdag ng miyembro ng pamilya." order={2} name="top-right-add-btn">
+                            <WalkthroughableView>
+                                <AdaptiveButton adaptive={!isCaretaker}
+                                    onPress={() => setModalVisible(true)}
+                                    autoWidth
+                                    missPadding={20}
+                                    maxScale={1.1}
+                                >
+                                    <Ionicons name="person-add" size={24} color="#fff" />
+                                </AdaptiveButton>
+                            </WalkthroughableView>
+                        </FocusedCopilotStep>
                     </View>
                     <Text style={styles.headerTitle}>Pamilya</Text>
                     <Text style={styles.headerSubtitle}>{isCaretaker ? 'Family Communication - Caretaker' : 'Family Communication'}</Text>
@@ -189,21 +215,37 @@ export default function PamilyaDashboardScreen() {
                                     <View style={styles.emptyState}>
                                         <MaterialCommunityIcons name="account-group-outline" size={60} color="#ccc" />
                                         <Text style={styles.emptyText}>No family members added yet.</Text>
-                                        <AdaptiveButton adaptive={!isCaretaker}
-                                            style={[styles.addButton, { backgroundColor: themeColor }]}
-                                            containerStyle={{ alignSelf: 'center' }}
-                                            onPress={() => setModalVisible(true)}
-                                            missPadding={15}
-                                            maxScale={1.05}
-                                            autoWidth
-                                        >
-                                            <Text style={styles.addButtonText}>Add Member</Text>
-                                        </AdaptiveButton>
+
+                                        {/* Add Member Button - Step 1 (Empty State) */}
+                                        <FocusedCopilotStep active={isFocused && isSenior && !modalVisible} text="Pindutin dito para magdagdag ng miyembro ng pamilya." order={1} name="add-member-btn">
+                                            <WalkthroughableView>
+                                                <AdaptiveButton adaptive={!isCaretaker}
+                                                    style={[styles.addButton, { backgroundColor: themeColor }]}
+                                                    containerStyle={{ alignSelf: 'center' }}
+                                                    onPress={() => setModalVisible(true)}
+                                                    missPadding={15}
+                                                    maxScale={1.05}
+                                                    autoWidth
+                                                >
+                                                    <Text style={styles.addButtonText}>Add Member</Text>
+                                                </AdaptiveButton>
+                                            </WalkthroughableView>
+                                        </FocusedCopilotStep>
                                     </View >
                                 ) : (
-                                    contacts.map((contact) => (
-                                        <FamilyCard key={contact.id} contact={contact} />
-                                    ))
+                                    contacts.map((contact, index) => {
+                                        // Wrap first contact - Step 1 (Has Contacts)
+                                        if (index === 0) {
+                                            return (
+                                                <FocusedCopilotStep key={contact.id} active={isFocused && isSenior && !modalVisible} text="Dito makikita ang iyong pamilya at ang kanilang status." order={1} name="first-contact-card">
+                                                    <WalkthroughableView>
+                                                        <FamilyCard contact={contact} />
+                                                    </WalkthroughableView>
+                                                </FocusedCopilotStep>
+                                            );
+                                        }
+                                        return <FamilyCard key={contact.id} contact={contact} />;
+                                    })
                                 )}
                             </>
                         )}
@@ -213,26 +255,36 @@ export default function PamilyaDashboardScreen() {
 
             {/* Footer Buttons */}
             < View style={styles.footer} >
-                <AdaptiveButton adaptive={!isCaretaker}
-                    style={styles.emergencyButton}
-                    containerStyle={{ flex: 1 }}
-                    onPress={() => { }}
-                    missPadding={15}
-                    maxScale={1.05}
-                >
-                    <Ionicons name="call" size={24} color="#fff" style={{ marginRight: 10 }} />
-                    <Text style={styles.emergencyText}>Emergency Hotline 911</Text>
-                </AdaptiveButton>
+                {/* Emergency Button - Step 2 or 3 */}
+                <FocusedCopilotStep active={isFocused && isSenior && !modalVisible} text="Pindutin dito para tumawag sa emergency hotline." order={emergencyOrder} name="emergency-btn">
+                    <WalkthroughableView style={{ flex: 1 }}>
+                        <AdaptiveButton adaptive={!isCaretaker}
+                            style={styles.emergencyButton}
+                            containerStyle={{ width: '100%' }} // Ensure fill
+                            onPress={() => { }}
+                            missPadding={15}
+                            maxScale={1.05}
+                        >
+                            <Ionicons name="call" size={24} color="#fff" style={{ marginRight: 10 }} />
+                            <Text style={styles.emergencyText}>Emergency Hotline 911</Text>
+                        </AdaptiveButton>
+                    </WalkthroughableView>
+                </FocusedCopilotStep>
 
-                <AdaptiveButton adaptive={!isCaretaker}
-                    style={styles.micButton}
-                    onPress={() => { }}
-                    missPadding={15}
-                    maxScale={1.1}
-                    autoWidth
-                >
-                    <Ionicons name="mic" size={28} color="#fff" />
-                </AdaptiveButton>
+                {/* Mic Button - Step 3 or 4 */}
+                <FocusedCopilotStep active={isFocused && isSenior && !modalVisible} text="Pindutin at magsalita para sa iba pang tulong." order={micOrder} name="mic-btn">
+                    <WalkthroughableView>
+                        <AdaptiveButton adaptive={!isCaretaker}
+                            style={styles.micButton}
+                            onPress={() => { }}
+                            missPadding={15}
+                            maxScale={1.1}
+                            autoWidth
+                        >
+                            <Ionicons name="mic" size={28} color="#fff" />
+                        </AdaptiveButton>
+                    </WalkthroughableView>
+                </FocusedCopilotStep>
             </View >
 
             {/* Add Contact Modal */}
@@ -247,41 +299,62 @@ export default function PamilyaDashboardScreen() {
                         <Text style={[styles.modalTitle, { color: themeColor }]}>Add Family Member</Text>
 
                         <Text style={styles.label}>Name</Text>
-                        <TextInput
-                            style={styles.input}
-                            placeholder="e.g. Maria"
-                            value={newName}
-                            onChangeText={setNewName}
-                        />
+                        <FocusedCopilotStep active={isFocused && isSenior && modalVisible} text="Ilagay dito ang pangalan ng miyembro ng pamilya." order={1} name="modal-input-name">
+                            <WalkthroughableView>
+                                <TextInput
+                                    style={styles.input}
+                                    placeholder="e.g. Maria"
+                                    value={newName}
+                                    onChangeText={setNewName}
+                                />
+                            </WalkthroughableView>
+                        </FocusedCopilotStep>
 
                         <Text style={styles.label}>Relationship (e.g. Anak, Apo)</Text>
-                        <TextInput
-                            style={styles.input}
-                            placeholder="e.g. Anak"
-                            value={newRelation}
-                            onChangeText={setNewRelation}
-                        />
+                        <FocusedCopilotStep active={isFocused && isSenior && modalVisible} text="Ilagay dito kung ano mo siya (halimbawa: Anak, Apo)." order={2} name="modal-input-relation">
+                            <WalkthroughableView>
+                                <TextInput
+                                    style={styles.input}
+                                    placeholder="e.g. Anak"
+                                    value={newRelation}
+                                    onChangeText={setNewRelation}
+                                />
+                            </WalkthroughableView>
+                        </FocusedCopilotStep>
 
                         <Text style={styles.label}>Phone Number</Text>
-                        <TextInput
-                            style={styles.input}
-                            placeholder="0917..."
-                            keyboardType="phone-pad"
-                            value={newPhone}
-                            onChangeText={setNewPhone}
-                        />
+                        <FocusedCopilotStep active={isFocused && isSenior && modalVisible} text="Ilagay dito ang kanilang numero ng telepono." order={3} name="modal-input-phone">
+                            <WalkthroughableView>
+                                <TextInput
+                                    style={styles.input}
+                                    placeholder="0917..."
+                                    keyboardType="phone-pad"
+                                    value={newPhone}
+                                    onChangeText={setNewPhone}
+                                />
+                            </WalkthroughableView>
+                        </FocusedCopilotStep>
 
                         <View style={styles.modalButtons}>
-                            <TouchableOpacity style={styles.cancelButton} onPress={() => setModalVisible(false)}>
-                                <Text style={styles.cancelButtonText}>Cancel</Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity
-                                style={[styles.saveButton, { backgroundColor: themeColor }]}
-                                onPress={handleAddContact}
-                                disabled={adding}
-                            >
-                                {adding ? <ActivityIndicator color="#fff" /> : <Text style={styles.saveButtonText}>Save</Text>}
-                            </TouchableOpacity>
+                            <FocusedCopilotStep active={isFocused && isSenior && modalVisible} text="Pindutin ito kung ayaw mong ituloy." order={5} name="modal-btn-cancel">
+                                <WalkthroughableView style={{ flex: 1 }}>
+                                    <TouchableOpacity style={styles.cancelButton} onPress={() => setModalVisible(false)}>
+                                        <Text style={styles.cancelButtonText}>Cancel</Text>
+                                    </TouchableOpacity>
+                                </WalkthroughableView>
+                            </FocusedCopilotStep>
+
+                            <FocusedCopilotStep active={isFocused && isSenior && modalVisible} text="Pindutin ito para i-save ang impormasyon." order={4} name="modal-btn-save">
+                                <WalkthroughableView style={{ flex: 1 }}>
+                                    <TouchableOpacity
+                                        style={[styles.saveButton, { backgroundColor: themeColor }]}
+                                        onPress={handleAddContact}
+                                        disabled={adding}
+                                    >
+                                        {adding ? <ActivityIndicator color="#fff" /> : <Text style={styles.saveButtonText}>Save</Text>}
+                                    </TouchableOpacity>
+                                </WalkthroughableView>
+                            </FocusedCopilotStep>
                         </View>
                     </View>
                 </View>

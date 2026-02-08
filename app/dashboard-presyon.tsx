@@ -1,12 +1,23 @@
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { useIsFocused } from '@react-navigation/native';
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { CopilotStep, walkthroughable } from 'react-native-copilot';
 import { auth } from '../configs/firebase';
 import { getVitalsRealtime, Vital } from '../services/vitals';
 
+const WalkthroughableView = walkthroughable(View);
+const WalkthroughableTouchableOpacity = walkthroughable(TouchableOpacity);
+
+const FocusedCopilotStep = ({ active, children, ...props }: any) => {
+    if (!active) return children;
+    return <CopilotStep {...props}>{children}</CopilotStep>;
+};
+
 export default function PresyonDashboardScreen() {
     const router = useRouter();
+    const isFocused = useIsFocused();
     const [vitals, setVitals] = useState<Vital[]>([]);
     const [loading, setLoading] = useState(true);
 
@@ -39,10 +50,14 @@ export default function PresyonDashboardScreen() {
         <ScrollView contentContainerStyle={styles.container}>
             {/* Header */}
             <View style={styles.header}>
-                <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
-                    <Ionicons name="arrow-back" size={24} color="#fff" />
-                    <Text style={styles.backText}>Bumalik</Text>
-                </TouchableOpacity>
+                <FocusedCopilotStep active={isFocused} text="Pindutin dito para bumalik." order={3} name="back-btn">
+                    <WalkthroughableView style={{ alignSelf: 'flex-start' }}>
+                        <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+                            <Ionicons name="arrow-back" size={24} color="#fff" />
+                            <Text style={styles.backText}>Bumalik</Text>
+                        </TouchableOpacity>
+                    </WalkthroughableView>
+                </FocusedCopilotStep>
                 <Text style={styles.headerTitle}>Presyon At Sugar</Text>
                 <Text style={styles.headerSubtitle}>History of Blood Pressure & Glucose</Text>
             </View>
@@ -54,56 +69,59 @@ export default function PresyonDashboardScreen() {
             ) : (
                 <>
                     {/* Today's Vitals Card */}
-                    <View style={styles.vitalsCard}>
-                        <View style={styles.vitalsHeader}>
-                            <MaterialCommunityIcons name="heart-pulse" size={24} color="#2563eb" />
-                            <Text style={styles.vitalsTitle}>Latest Vitals</Text>
-                        </View>
-
-                        <View style={styles.statsContainer}>
-                            {/* BP Card */}
-                            <View style={styles.statBox}>
-                                <Text style={styles.statLabel}>Blood Pressure</Text>
-                                <Text style={styles.statValue}>{latestVital ? `${latestVital.bpSystolic}/${latestVital.bpDiastolic}` : "--/--"}</Text>
-                                <Text style={styles.statStatus}>{latestVital ? "Recorded" : "No Data"}</Text>
+                    <FocusedCopilotStep active={isFocused} text="Dito mo makikita ang huling sukat ng iyong presyon at sugar." order={1} name="latest-vitals">
+                        <WalkthroughableView style={styles.vitalsCard}>
+                            <View style={styles.vitalsHeader}>
+                                <MaterialCommunityIcons name="heart-pulse" size={24} color="#2563eb" />
+                                <Text style={styles.vitalsTitle}>Latest Vitals</Text>
                             </View>
 
-                            {/* Sugar Card */}
-                            <View style={styles.statBox}>
-                                <Text style={styles.statLabel}>Blood Sugar</Text>
-                                <Text style={styles.statValue}>{latestVital ? `${latestVital.bloodSugar} mg/dL` : "--"}</Text>
-                                <Text style={styles.statStatus}>{latestVital ? "Recorded" : "No Data"}</Text>
+                            <View style={styles.statsContainer}>
+                                {/* BP Card */}
+                                <View style={styles.statBox}>
+                                    <Text style={styles.statLabel}>Blood Pressure</Text>
+                                    <Text style={styles.statValue}>{latestVital ? `${latestVital.bpSystolic}/${latestVital.bpDiastolic}` : "--/--"}</Text>
+                                    <Text style={styles.statStatus}>{latestVital ? "Recorded" : "No Data"}</Text>
+                                </View>
+
+                                {/* Sugar Card */}
+                                <View style={styles.statBox}>
+                                    <Text style={styles.statLabel}>Blood Sugar</Text>
+                                    <Text style={styles.statValue}>{latestVital ? `${latestVital.bloodSugar} mg/dL` : "--"}</Text>
+                                    <Text style={styles.statStatus}>{latestVital ? "Recorded" : "No Data"}</Text>
+                                </View>
                             </View>
-                        </View>
-                    </View>
+                        </WalkthroughableView>
+                    </FocusedCopilotStep>
 
                     {/* History List */}
-                    <View style={styles.listContainer}>
-                        <Text style={{ fontSize: 18, fontWeight: 'bold', color: '#64748b', marginBottom: 15 }}>History</Text>
+                    <FocusedCopilotStep active={isFocused} text="Dito nakalista ang mga nakaraang sukat." order={2} name="history-list">
+                        <WalkthroughableView style={styles.listContainer}>
+                            <Text style={{ fontSize: 18, fontWeight: 'bold', color: '#64748b', marginBottom: 15 }}>History</Text>
 
-                        {vitals.map((vital) => (
-                            <View key={vital.id} style={styles.historyCard}>
-                                <View style={styles.historyIconBox}>
-                                    <MaterialCommunityIcons name="pulse" size={24} color="#3b82f6" />
-                                </View>
-                                <View style={styles.historyContent}>
-                                    <View style={styles.historyRow}>
-                                        <Text style={styles.historyMainText}>BP: {vital.bpSystolic}/{vital.bpDiastolic}</Text>
-                                        <Text style={styles.historyDate}>{formatDate(vital.createdAt)}</Text>
+                            {vitals.map((vital) => (
+                                <View key={vital.id} style={styles.historyCard}>
+                                    <View style={styles.historyIconBox}>
+                                        <MaterialCommunityIcons name="pulse" size={24} color="#3b82f6" />
                                     </View>
-                                    <View style={styles.historyRow}>
-                                        <Text style={styles.historySubText}>Sugar: {vital.bloodSugar} mg/dL</Text>
-                                        <Text style={styles.statusNormal}>Recorded</Text>
+                                    <View style={styles.historyContent}>
+                                        <View style={styles.historyRow}>
+                                            <Text style={styles.historyMainText}>BP: {vital.bpSystolic}/{vital.bpDiastolic}</Text>
+                                            <Text style={styles.historyDate}>{formatDate(vital.createdAt)}</Text>
+                                        </View>
+                                        <View style={styles.historyRow}>
+                                            <Text style={styles.historySubText}>Sugar: {vital.bloodSugar} mg/dL</Text>
+                                            <Text style={styles.statusNormal}>Recorded</Text>
+                                        </View>
                                     </View>
                                 </View>
-                            </View>
-                        ))}
+                            ))}
 
-                        {vitals.length === 0 && (
-                            <Text style={{ textAlign: 'center', color: '#94a3b8', marginTop: 10 }}>No history available.</Text>
-                        )}
-
-                    </View>
+                            {vitals.length === 0 && (
+                                <Text style={{ textAlign: 'center', color: '#94a3b8', marginTop: 10 }}>No history available.</Text>
+                            )}
+                        </WalkthroughableView>
+                    </FocusedCopilotStep>
                 </>
             )}
 
