@@ -1,14 +1,25 @@
 import { AdaptiveButton } from '@/components/AdaptiveButton';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { useIsFocused } from '@react-navigation/native';
 import { useRouter } from 'expo-router';
 import { doc, getDoc } from 'firebase/firestore';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { CopilotStep, walkthroughable } from 'react-native-copilot';
 import { auth, db } from '../configs/firebase';
 import { Appointment, getAppointmentsRealtime, updateAppointmentStatus } from '../services/appointment';
 
+const WalkthroughableView = walkthroughable(View);
+const WalkthroughableTouchableOpacity = walkthroughable(TouchableOpacity);
+
+const FocusedCopilotStep = ({ active, children, ...props }: any) => {
+    if (!active) return children;
+    return <CopilotStep {...props}>{children}</CopilotStep>;
+};
+
 export default function AppointmentDashboardScreen() {
     const router = useRouter();
+    const isFocused = useIsFocused();
     const [userRole, setUserRole] = useState<'senior' | 'caretaker'>('senior');
     const [successModalVisible, setSuccessModalVisible] = useState(false);
     const [actionMessage, setActionMessage] = useState('');
@@ -57,38 +68,49 @@ export default function AppointmentDashboardScreen() {
         }
     };
 
+    const hasAppointments = appointments.length > 0;
+
     return (
         <ScrollView contentContainerStyle={styles.container}>
             {/* Header */}
             <View style={styles.header}>
-                <AdaptiveButton
-                    style={styles.backButton}
-                    onPress={() => router.back()}
-                    autoWidth
-                    missPadding={20}
-                    maxScale={1.1}
-                >
-                    <Ionicons name="arrow-back" size={24} color="#fff" />
-                    <Text style={styles.backText}>Bumalik</Text>
-                </AdaptiveButton>
+                <FocusedCopilotStep active={isFocused} text="Pindutin dito para bumalik." order={hasAppointments ? 3 : 2} name="back-btn">
+                    <WalkthroughableView style={{ alignSelf: 'flex-start' }}>
+                        <AdaptiveButton
+                            style={styles.backButton}
+                            onPress={() => router.back()}
+                            autoWidth
+                            missPadding={20}
+                            maxScale={1.1}
+                        >
+                            <Ionicons name="arrow-back" size={24} color="#fff" />
+                            <Text style={styles.backText}>Bumalik</Text>
+                        </AdaptiveButton>
+                    </WalkthroughableView>
+                </FocusedCopilotStep>
                 <Text style={styles.headerTitle}>Appointment sa Doktor</Text>
                 <Text style={styles.headerSubtitle}>Doctor appointments</Text>
             </View>
 
             {/* Notification Card (Latest Appointment) */}
-            {appointments.length > 0 && (
-                <View style={styles.notificationCard}>
-                    <View style={styles.notificationIconCircle}>
-                        <Ionicons name="notifications" size={30} color="#fcfcfcff" />
-                    </View>
-                    <View>
-                        <Text style={styles.notificationTitle}>Doctor visit today</Text>
-                        <Text style={styles.notificationSubtitle}>
-                            {appointments[0].time} - {appointments[0].doctorName}
-                        </Text>
-                    </View>
-                </View>
+            {hasAppointments && (
+                <FocusedCopilotStep active={isFocused} text="Ito ang susunod mong appointment." order={1} name="next-appointment">
+                    <WalkthroughableView style={styles.notificationCard}>
+                        <View style={styles.notificationIconCircle}>
+                            <Ionicons name="notifications" size={30} color="#fcfcfcff" />
+                        </View>
+                        <View>
+                            <Text style={styles.notificationTitle}>Doctor visit today</Text>
+                            <Text style={styles.notificationSubtitle}>
+                                {appointments[0].time} - {appointments[0].doctorName}
+                            </Text>
+                        </View>
+                    </WalkthroughableView>
+                </FocusedCopilotStep>
             )}
+
+            {/* No Appointments - Highlight the text instead of a new card */}
+            {/* Removed All Clear Card */}
 
             <Text style={styles.sectionTitle}>Schedule</Text>
 
@@ -98,51 +120,102 @@ export default function AppointmentDashboardScreen() {
                     <ActivityIndicator size="large" color="#3b82f6" />
                 ) : (
                     <>
-                        {appointments.map((apt) => (
-                            <View key={apt.id} style={styles.scheduleCard}>
-                                <View style={styles.doctorIconBox}>
-                                    <MaterialCommunityIcons name="doctor" size={30} color="#3b82f6" />
-                                </View>
-                                <View style={styles.scheduleContent}>
-                                    <Text style={styles.doctorName}>Doctor {apt.doctorName} visit.</Text>
-                                    <Text style={styles.visitTime}>{apt.time}</Text>
-                                    <View style={styles.dateContainer}>
-                                        <Text style={styles.visitDate}>{apt.date}</Text>
-                                        <Text style={styles.visitDay}>Upcoming</Text>
-                                    </View>
+                        {appointments.map((apt, index) => {
+                            // Wrap the first item if we have appointments.
+                            if (index === 0) {
+                                return (
+                                    <FocusedCopilotStep key={apt.id} active={isFocused} text="Dito makikita ang detalye ng iyong schedule." order={2} name="appointment-list-item">
+                                        <WalkthroughableView style={styles.scheduleCard}>
+                                            <View style={styles.doctorIconBox}>
+                                                <MaterialCommunityIcons name="doctor" size={30} color="#3b82f6" />
+                                            </View>
+                                            <View style={styles.scheduleContent}>
+                                                <Text style={styles.doctorName}>Doctor {apt.doctorName} visit.</Text>
+                                                <Text style={styles.visitTime}>{apt.time}</Text>
+                                                <View style={styles.dateContainer}>
+                                                    <Text style={styles.visitDate}>{apt.date}</Text>
+                                                    <Text style={styles.visitDay}>Upcoming</Text>
+                                                </View>
 
-                                    {/* Actions for Caretaker */}
-                                    <View style={styles.actionRow}>
-                                        <AdaptiveButton
-                                            style={[styles.actionButton, { backgroundColor: '#dcfce7' }]}
-                                            onPress={() => handleUpdateStatus(apt.id, 'Completed')}
-                                            autoWidth
-                                            missPadding={20}
-                                            maxScale={1.1}
-                                        >
-                                            <Ionicons name="checkmark" size={20} color="#22c55e" />
-                                            <Text style={[styles.actionText, { color: '#166534' }]}>Done</Text>
-                                        </AdaptiveButton>
+                                                {/* Actions for Caretaker */}
+                                                <View style={styles.actionRow}>
+                                                    <AdaptiveButton
+                                                        style={[styles.actionButton, { backgroundColor: '#dcfce7' }]}
+                                                        onPress={() => handleUpdateStatus(apt.id, 'Completed')}
+                                                        autoWidth
+                                                        missPadding={20}
+                                                        maxScale={1.1}
+                                                    >
+                                                        <Ionicons name="checkmark" size={20} color="#22c55e" />
+                                                        <Text style={[styles.actionText, { color: '#166534' }]}>Done</Text>
+                                                    </AdaptiveButton>
 
-                                        <AdaptiveButton
-                                            style={[styles.actionButton, { backgroundColor: '#fee2e2' }]}
-                                            onPress={() => handleUpdateStatus(apt.id, 'Cancelled')}
-                                            autoWidth
-                                            missPadding={20}
-                                            maxScale={1.1}
-                                        >
-                                            <Ionicons name="close" size={20} color="#ef4444" />
-                                            <Text style={[styles.actionText, { color: '#991b1b' }]}>Cancel</Text>
-                                        </AdaptiveButton>
+                                                    <AdaptiveButton
+                                                        style={[styles.actionButton, { backgroundColor: '#fee2e2' }]}
+                                                        onPress={() => handleUpdateStatus(apt.id, 'Cancelled')}
+                                                        autoWidth
+                                                        missPadding={20}
+                                                        maxScale={1.1}
+                                                    >
+                                                        <Ionicons name="close" size={20} color="#ef4444" />
+                                                        <Text style={[styles.actionText, { color: '#991b1b' }]}>Cancel</Text>
+                                                    </AdaptiveButton>
+                                                </View>
+                                            </View>
+                                        </WalkthroughableView>
+                                    </FocusedCopilotStep>
+                                );
+                            }
+                            return (
+                                <View key={apt.id} style={styles.scheduleCard}>
+                                    <View style={styles.doctorIconBox}>
+                                        <MaterialCommunityIcons name="doctor" size={30} color="#3b82f6" />
+                                    </View>
+                                    <View style={styles.scheduleContent}>
+                                        <Text style={styles.doctorName}>Doctor {apt.doctorName} visit.</Text>
+                                        <Text style={styles.visitTime}>{apt.time}</Text>
+                                        <View style={styles.dateContainer}>
+                                            <Text style={styles.visitDate}>{apt.date}</Text>
+                                            <Text style={styles.visitDay}>Upcoming</Text>
+                                        </View>
+
+                                        {/* Actions for Caretaker */}
+                                        <View style={styles.actionRow}>
+                                            <AdaptiveButton
+                                                style={[styles.actionButton, { backgroundColor: '#dcfce7' }]}
+                                                onPress={() => handleUpdateStatus(apt.id, 'Completed')}
+                                                autoWidth
+                                                missPadding={20}
+                                                maxScale={1.1}
+                                            >
+                                                <Ionicons name="checkmark" size={20} color="#22c55e" />
+                                                <Text style={[styles.actionText, { color: '#166534' }]}>Done</Text>
+                                            </AdaptiveButton>
+
+                                            <AdaptiveButton
+                                                style={[styles.actionButton, { backgroundColor: '#fee2e2' }]}
+                                                onPress={() => handleUpdateStatus(apt.id, 'Cancelled')}
+                                                autoWidth
+                                                missPadding={20}
+                                                maxScale={1.1}
+                                            >
+                                                <Ionicons name="close" size={20} color="#ef4444" />
+                                                <Text style={[styles.actionText, { color: '#991b1b' }]}>Cancel</Text>
+                                            </AdaptiveButton>
+                                        </View>
                                     </View>
                                 </View>
-                            </View>
-                        ))}
+                            );
+                        })}
 
                         {appointments.length === 0 && (
-                            <Text style={{ textAlign: 'center', color: '#64748b', marginTop: 20 }}>
-                                No appointments scheduled.
-                            </Text>
+                            <FocusedCopilotStep active={isFocused} text="Wala kang nakatakdang appointment sa ngayon." order={1} name="no-appointment">
+                                <WalkthroughableView>
+                                    <Text style={{ textAlign: 'center', color: '#64748b', marginTop: 20 }}>
+                                        No appointments scheduled.
+                                    </Text>
+                                </WalkthroughableView>
+                            </FocusedCopilotStep>
                         )}
                     </>
                 )}

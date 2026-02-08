@@ -1,25 +1,39 @@
 import { AdaptiveButton } from '@/components/AdaptiveButton';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { useIsFocused } from '@react-navigation/native';
 import { useRouter } from 'expo-router';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { CopilotStep, walkthroughable } from 'react-native-copilot';
+
+const WalkthroughableView = walkthroughable(View);
+
+const FocusedCopilotStep = ({ active, children, ...props }: any) => {
+    if (!active) return children;
+    return <CopilotStep {...props}>{children}</CopilotStep>;
+};
 
 export default function SerbisyoDashboardScreen() {
     const router = useRouter();
+    const isFocused = useIsFocused();
 
     return (
         <ScrollView contentContainerStyle={styles.container}>
             {/* Header */}
             <View style={styles.header}>
-                <AdaptiveButton
-                    style={styles.backButton}
-                    onPress={() => router.back()}
-                    autoWidth
-                    missPadding={20}
-                    maxScale={1.1}
-                >
-                    <Ionicons name="arrow-back" size={24} color="#fff" />
-                    <Text style={styles.backText}>Bumalik</Text>
-                </AdaptiveButton>
+                <FocusedCopilotStep active={isFocused} text="Pindutin dito para bumalik." order={5} name="back-btn">
+                    <WalkthroughableView style={{ alignSelf: 'flex-start' }}>
+                        <AdaptiveButton
+                            style={styles.backButton}
+                            onPress={() => router.back()}
+                            autoWidth
+                            missPadding={20}
+                            maxScale={1.1}
+                        >
+                            <Ionicons name="arrow-back" size={24} color="#fff" />
+                            <Text style={styles.backText}>Bumalik</Text>
+                        </AdaptiveButton>
+                    </WalkthroughableView>
+                </FocusedCopilotStep>
                 <Text style={styles.headerTitle}>Serbisyo ng Gobyerno</Text>
                 <Text style={styles.headerSubtitle}>Government Services</Text>
             </View>
@@ -28,71 +42,87 @@ export default function SerbisyoDashboardScreen() {
             <View style={styles.listContainer}>
 
                 {/* SSS */}
-                <AdaptiveButton
-                    style={styles.serviceCard}
-                    onPress={() => router.push('/sss-pension')}
-                    missPadding={15}
-                    maxScale={1.05}
-                >
-                    <View style={styles.iconBox}>
-                        <Ionicons name="card-outline" size={24} color="#2563eb" />
-                    </View>
-                    <View style={styles.textContainer}>
-                        <Text style={styles.serviceTitle}>SSS Pension</Text>
-                        <Text style={styles.serviceSubtitle}>Check pension status</Text>
-                    </View>
-                    <Ionicons name="chevron-forward" size={24} color="#3b82f6" />
-                </AdaptiveButton>
+                <FocusedCopilotStep active={isFocused} text="Pindutin dito para sa impormasyon tungkol sa SSS." order={1} name="sss-btn">
+                    <WalkthroughableView>
+                        <AdaptiveButton
+                            style={styles.serviceCard}
+                            onPress={() => router.push('/sss-pension')}
+                            missPadding={15}
+                            maxScale={1.05}
+                        >
+                            <View style={styles.iconBox}>
+                                <Ionicons name="card-outline" size={24} color="#2563eb" />
+                            </View>
+                            <View style={styles.textContainer}>
+                                <Text style={styles.serviceTitle}>SSS Pension</Text>
+                                <Text style={styles.serviceSubtitle}>Check pension status</Text>
+                            </View>
+                            <Ionicons name="chevron-forward" size={24} color="#3b82f6" />
+                        </AdaptiveButton>
+                    </WalkthroughableView>
+                </FocusedCopilotStep>
 
                 {/* PhilHealth */}
-                <AdaptiveButton
-                    style={styles.serviceCard}
-                    onPress={() => { }} // No route yet? Keeping empty helper
-                    missPadding={15}
-                    maxScale={1.05}
-                >
-                    <View style={styles.iconBox}>
-                        <Ionicons name="person" size={24} color="#2563eb" />
-                        <View style={styles.heartBadge}>
-                            <Ionicons name="heart" size={10} color="#fff" />
-                        </View>
-                    </View>
-                    <View style={styles.textContainer}>
-                        <Text style={styles.serviceTitle}>PhilHealth</Text>
-                        <Text style={styles.serviceSubtitle}>Health insurance info</Text>
-                    </View>
-                    <Ionicons name="chevron-forward" size={24} color="#3b82f6" />
-                </AdaptiveButton>
+                <FocusedCopilotStep active={isFocused} text="Pindutin dito para sa impormasyon tungkol sa PhilHealth." order={2} name="philhealth-btn">
+                    <WalkthroughableView>
+                        <AdaptiveButton
+                            style={styles.serviceCard}
+                            onPress={() => { }} // No route yet? Keeping empty helper
+                            missPadding={15}
+                            maxScale={1.05}
+                        >
+                            <View style={styles.iconBox}>
+                                <Ionicons name="person" size={24} color="#2563eb" />
+                                <View style={styles.heartBadge}>
+                                    <Ionicons name="heart" size={10} color="#fff" />
+                                </View>
+                            </View>
+                            <View style={styles.textContainer}>
+                                <Text style={styles.serviceTitle}>PhilHealth</Text>
+                                <Text style={styles.serviceSubtitle}>Health insurance info</Text>
+                            </View>
+                            <Ionicons name="chevron-forward" size={24} color="#3b82f6" />
+                        </AdaptiveButton>
+                    </WalkthroughableView>
+                </FocusedCopilotStep>
 
                 {/* DSWD */}
-                <AdaptiveButton
-                    style={styles.serviceCard}
-                    onPress={() => { }} // No route yet
-                    missPadding={15}
-                    maxScale={1.05}
-                >
-                    <View style={styles.iconBox}>
-                        <MaterialCommunityIcons name="hand-heart" size={24} color="#2563eb" />
-                    </View>
-                    <View style={styles.textContainer}>
-                        <Text style={styles.serviceTitle}>DSWD Programs</Text>
-                        <Text style={styles.serviceSubtitle}>Social welfare services</Text>
-                    </View>
-                    <Ionicons name="chevron-forward" size={24} color="#3b82f6" />
-                </AdaptiveButton>
+                <FocusedCopilotStep active={isFocused} text="Pindutin dito para sa impormasyon tungkol sa DSWD." order={3} name="dswd-btn">
+                    <WalkthroughableView>
+                        <AdaptiveButton
+                            style={styles.serviceCard}
+                            onPress={() => { }} // No route yet
+                            missPadding={15}
+                            maxScale={1.05}
+                        >
+                            <View style={styles.iconBox}>
+                                <MaterialCommunityIcons name="hand-heart" size={24} color="#2563eb" />
+                            </View>
+                            <View style={styles.textContainer}>
+                                <Text style={styles.serviceTitle}>DSWD Programs</Text>
+                                <Text style={styles.serviceSubtitle}>Social welfare services</Text>
+                            </View>
+                            <Ionicons name="chevron-forward" size={24} color="#3b82f6" />
+                        </AdaptiveButton>
+                    </WalkthroughableView>
+                </FocusedCopilotStep>
 
             </View>
 
             {/* Footer Button */}
-            <AdaptiveButton
-                style={styles.footerButton}
-                onPress={() => { }} // No action defined in original file
-                missPadding={20}
-                maxScale={1.05}
-            >
-                <Ionicons name="mic" size={28} color="#fff" style={{ marginRight: 10 }} />
-                <Text style={styles.footerButtonText}>Magsalita</Text>
-            </AdaptiveButton>
+            <FocusedCopilotStep active={isFocused} text="Pindutin at magsalita para sa iba pang tulong." order={4} name="voice-command">
+                <WalkthroughableView>
+                    <AdaptiveButton
+                        style={styles.footerButton}
+                        onPress={() => { }} // No action defined in original file
+                        missPadding={20}
+                        maxScale={1.05}
+                    >
+                        <Ionicons name="mic" size={28} color="#fff" style={{ marginRight: 10 }} />
+                        <Text style={styles.footerButtonText}>Magsalita</Text>
+                    </AdaptiveButton>
+                </WalkthroughableView>
+            </FocusedCopilotStep>
 
         </ScrollView>
     );

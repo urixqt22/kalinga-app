@@ -98,7 +98,7 @@ export default function LoginSeniorScreen() {
                     style={[styles.loginButton, isLoading && { opacity: 0.7 }]}
                     onPress={handleLogin}
                     // disabled={isLoading} // AdaptiveButton updates needed for proper disabled support, relying on handler check for now
-                    missPadding={30}
+                    missPadding={5}
                     maxScale={1.05}
                 >
                     {isLoading ? (

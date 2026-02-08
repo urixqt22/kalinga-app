@@ -1,10 +1,21 @@
 import { AdaptiveButton } from '@/components/AdaptiveButton';
 import { Ionicons } from '@expo/vector-icons';
+import { useIsFocused } from '@react-navigation/native';
 import { useRouter } from 'expo-router';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { CopilotStep, walkthroughable } from 'react-native-copilot';
+
+const WalkthroughableView = walkthroughable(View);
+
+// Helper to only register step when screen is focused
+const FocusedCopilotStep = ({ active, children, ...props }: any) => {
+    if (!active) return children;
+    return <CopilotStep {...props}>{children}</CopilotStep>;
+};
 
 export default function WelcomeSeniorScreen() {
     const router = useRouter();
+    const isFocused = useIsFocused();
 
     return (
         <View style={styles.container}>
@@ -26,28 +37,40 @@ export default function WelcomeSeniorScreen() {
             </View>
 
             <View style={styles.buttonContainer}>
-                <AdaptiveButton
-                    style={styles.loginButton}
-                    onPress={() => router.push('/login-senior')}
-                    missPadding={10}
-                    maxScale={1.05}
-                >
-                    <Text style={styles.loginButtonText}>Mag-login (Login)</Text>
-                </AdaptiveButton>
+                <FocusedCopilotStep active={isFocused} text="Pindutin dito para mag-login sa iyong account." order={1} name="login">
+                    <WalkthroughableView style={{ width: '95%', alignSelf: 'center' }}>
+                        <AdaptiveButton
+                            style={styles.loginButton}
+                            onPress={() => router.push('/login-senior')}
+                            missPadding={10}
+                            maxScale={1.05}
+                        >
+                            <Text style={styles.loginButtonText}>Mag-login (Login)</Text>
+                        </AdaptiveButton>
+                    </WalkthroughableView>
+                </FocusedCopilotStep>
 
-                <AdaptiveButton
-                    style={styles.registerButton}
-                    onPress={() => router.push('/register-senior')}
-                    missPadding={10}
-                    maxScale={1.05}
-                >
-                    <Text style={styles.registerButtonText}>Mag-rehistro (Register)</Text>
-                </AdaptiveButton>
+                <FocusedCopilotStep active={isFocused} text="Pindutin dito para gumawa ng bagong account." order={2} name="register">
+                    <WalkthroughableView style={{ width: '95%', alignSelf: 'center' }}>
+                        <AdaptiveButton
+                            style={styles.registerButton}
+                            onPress={() => router.push('/register-senior')}
+                            missPadding={10}
+                            maxScale={1.05}
+                        >
+                            <Text style={styles.registerButtonText}>Mag-rehistro (Register)</Text>
+                        </AdaptiveButton>
+                    </WalkthroughableView>
+                </FocusedCopilotStep>
             </View>
 
-            <AdaptiveButton style={styles.sosButton} onPress={() => router.push('/emergency')} missPadding={30} maxScale={1.05}>
-                <Text style={styles.sosText}>EMERGENCY SOS</Text>
-            </AdaptiveButton>
+            <FocusedCopilotStep active={isFocused} text="Pindutin dito kung may emergency para makakuha agad ng tulong." order={3} name="sos">
+                <WalkthroughableView style={{ width: '95%', alignSelf: 'center' }}>
+                    <AdaptiveButton style={styles.sosButton} onPress={() => router.push('/emergency')} missPadding={30} maxScale={1.05}>
+                        <Text style={styles.sosText}>EMERGENCY SOS</Text>
+                    </AdaptiveButton>
+                </WalkthroughableView>
+            </FocusedCopilotStep>
             <Text style={styles.sosSubtext}>Tap for immediate help / Tapikin para sa tulong</Text>
 
             <Text style={styles.version}>Version 1.0.0</Text>

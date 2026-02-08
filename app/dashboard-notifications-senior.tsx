@@ -1,14 +1,24 @@
 import { AdaptiveButton } from '@/components/AdaptiveButton';
 import { Ionicons } from '@expo/vector-icons';
+import { useIsFocused } from '@react-navigation/native';
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { CopilotStep, walkthroughable } from 'react-native-copilot';
 import { auth } from '../configs/firebase';
 import { ConnectionRequest, getConnectionRequests, respondToRequest } from '../services/connection';
 import { AppNotification, getNotifications, markAsDone } from '../services/notification';
 
+const WalkthroughableView = walkthroughable(View);
+
+const FocusedCopilotStep = ({ active, children, ...props }: any) => {
+    if (!active) return children;
+    return <CopilotStep {...props}>{children}</CopilotStep>;
+};
+
 export default function SeniorNotificationsScreen() {
     const router = useRouter();
+    const isFocused = useIsFocused();
 
     // Connection Requests State
     const [requests, setRequests] = useState<ConnectionRequest[]>([]);
@@ -69,20 +79,36 @@ export default function SeniorNotificationsScreen() {
         }
     };
 
+    // Determine Step Orders
+    const hasRequests = requests.length > 0;
+    const hasNotifications = notifications.length > 0;
+
+    // Step 1: Requests (if any)
+    // Step 2 (or 1): Notifications (if any) OR No Notifications Text
+    // Step 3 (or 2 or 1): Back Button
+
+    let backButtonOrder = 1;
+    if (hasRequests) backButtonOrder++;
+    if (hasNotifications || !loading) backButtonOrder++; // Always count the notifications section (either list or empty text)
+
     return (
         <ScrollView contentContainerStyle={styles.container}>
             {/* Header */}
             <View style={styles.header}>
-                <AdaptiveButton
-                    style={styles.backButton}
-                    onPress={() => router.back()}
-                    autoWidth
-                    missPadding={10}
-                    maxScale={1.1}
-                >
-                    <Ionicons name="arrow-back" size={24} color={themeColor} />
-                    <Text style={[styles.backText, { color: themeColor }]}>Bumalik</Text>
-                </AdaptiveButton>
+                <FocusedCopilotStep active={isFocused} text="Pindutin dito para bumalik." order={backButtonOrder} name="back-btn">
+                    <WalkthroughableView style={{ alignSelf: 'flex-start' }}>
+                        <AdaptiveButton
+                            style={styles.backButton}
+                            onPress={() => router.back()}
+                            autoWidth
+                            missPadding={10}
+                            maxScale={1.1}
+                        >
+                            <Ionicons name="arrow-back" size={24} color={themeColor} />
+                            <Text style={[styles.backText, { color: themeColor }]}>Bumalik</Text>
+                        </AdaptiveButton>
+                    </WalkthroughableView>
+                </FocusedCopilotStep>
                 <Text style={[styles.headerTitle, { color: themeColor }]}>Notifications</Text>
             </View>
 
@@ -91,35 +117,37 @@ export default function SeniorNotificationsScreen() {
 
                 {/* Connection Requests Section */}
                 {requests.length > 0 && (
-                    <View style={{ marginBottom: 20 }}>
-                        <Text style={styles.sectionTitle}>Connection Requests</Text>
-                        {requests.map((request) => (
-                            <View key={request.id} style={[styles.notificationCard, { backgroundColor: '#fff', borderLeftWidth: 5, borderLeftColor: themeColor }]}>
-                                <View style={[styles.iconCircle, { backgroundColor: themeColor }]}>
-                                    <Ionicons name="person-add" size={24} color="#fff" />
-                                </View>
-                                <View style={styles.textContainer}>
-                                    <Text style={[styles.notificationTitle, { color: '#000' }]}>
-                                        <Text style={{ fontWeight: 'bold', color: themeColor }}>{request.caretakerName}</Text> wants to connect with you.
-                                    </Text>
-                                    <View style={styles.actionButtons}>
-                                        <TouchableOpacity
-                                            style={[styles.actionButton, { backgroundColor: '#ef4444' }]}
-                                            onPress={() => handleConnectionResponse(request, false)}
-                                        >
-                                            <Text style={styles.actionButtonText}>Decline</Text>
-                                        </TouchableOpacity>
-                                        <TouchableOpacity
-                                            style={[styles.actionButton, { backgroundColor: '#22c55e' }]}
-                                            onPress={() => handleConnectionResponse(request, true)}
-                                        >
-                                            <Text style={styles.actionButtonText}>Accept</Text>
-                                        </TouchableOpacity>
+                    <FocusedCopilotStep active={isFocused} text="Dito makikita ang mga request ng gustong kumonekta sa iyo." order={1} name="connection-requests">
+                        <WalkthroughableView style={{ marginBottom: 20 }}>
+                            <Text style={styles.sectionTitle}>Connection Requests</Text>
+                            {requests.map((request) => (
+                                <View key={request.id} style={[styles.notificationCard, { backgroundColor: '#fff', borderLeftWidth: 5, borderLeftColor: themeColor }]}>
+                                    <View style={[styles.iconCircle, { backgroundColor: themeColor }]}>
+                                        <Ionicons name="person-add" size={24} color="#fff" />
+                                    </View>
+                                    <View style={styles.textContainer}>
+                                        <Text style={[styles.notificationTitle, { color: '#000' }]}>
+                                            <Text style={{ fontWeight: 'bold', color: themeColor }}>{request.caretakerName}</Text> wants to connect with you.
+                                        </Text>
+                                        <View style={styles.actionButtons}>
+                                            <TouchableOpacity
+                                                style={[styles.actionButton, { backgroundColor: '#ef4444' }]}
+                                                onPress={() => handleConnectionResponse(request, false)}
+                                            >
+                                                <Text style={styles.actionButtonText}>Decline</Text>
+                                            </TouchableOpacity>
+                                            <TouchableOpacity
+                                                style={[styles.actionButton, { backgroundColor: '#22c55e' }]}
+                                                onPress={() => handleConnectionResponse(request, true)}
+                                            >
+                                                <Text style={styles.actionButtonText}>Accept</Text>
+                                            </TouchableOpacity>
+                                        </View>
                                     </View>
                                 </View>
-                            </View>
-                        ))}
-                    </View>
+                            ))}
+                        </WalkthroughableView>
+                    </FocusedCopilotStep>
                 )}
 
                 {/* Generic Notifications Section */}
@@ -127,34 +155,66 @@ export default function SeniorNotificationsScreen() {
                     <Text style={styles.sectionTitle}>Recent Activity</Text>
 
                     {notifications.length === 0 && (
-                        <View>
-                            <Text style={styles.emptyText}>No new notifications.</Text>
-                        </View>
+                        <FocusedCopilotStep active={isFocused} text="Wala kang bagong abiso sa ngayon." order={hasRequests ? 2 : 1} name="no-notifications">
+                            <WalkthroughableView>
+                                <Text style={styles.emptyText}>No new notifications.</Text>
+                            </WalkthroughableView>
+                        </FocusedCopilotStep>
                     )}
 
-                    {notifications.map((notif) => (
-                        <View key={notif.id} style={[styles.notificationCard, { backgroundColor: themeColor }]}>
-                            <View style={styles.iconCircle}>
-                                <Ionicons name="notifications-outline" size={30} color="#fff" />
-                            </View>
-                            <View style={styles.textContainer}>
-                                <Text style={styles.notificationTitle}>{notif.title}</Text>
-                                <Text style={styles.notificationMessage}>{notif.message}</Text>
-                            </View>
+                    {notifications.map((notif, index) => {
+                        // Wrap the first notification
+                        if (index === 0) {
+                            return (
+                                <FocusedCopilotStep key={notif.id} active={isFocused} text="Dito makikita ang mga abiso o paalala." order={hasRequests ? 2 : 1} name="first-notification">
+                                    <WalkthroughableView style={[styles.notificationCard, { backgroundColor: themeColor }]}>
+                                        <View style={styles.iconCircle}>
+                                            <Ionicons name="notifications-outline" size={30} color="#fff" />
+                                        </View>
+                                        <View style={styles.textContainer}>
+                                            <Text style={styles.notificationTitle}>{notif.title}</Text>
+                                            <Text style={styles.notificationMessage}>{notif.message}</Text>
+                                        </View>
 
-                            {/* Done Button */}
-                            <AdaptiveButton
-                                onPress={() => handleMarkAsDone(notif)}
-                                style={styles.closeButton}
-                                missPadding={15}
-                                maxScale={1.2}
-                                autoWidth
-                            >
-                                <Ionicons name="checkmark-circle" size={28} color="#fff" />
-                                <Text style={styles.doneText}>Done</Text>
-                            </AdaptiveButton>
-                        </View>
-                    ))}
+                                        {/* Done Button */}
+                                        <AdaptiveButton
+                                            onPress={() => handleMarkAsDone(notif)}
+                                            style={styles.closeButton}
+                                            missPadding={15}
+                                            maxScale={1.2}
+                                            autoWidth
+                                        >
+                                            <Ionicons name="checkmark-circle" size={28} color="#fff" />
+                                            <Text style={styles.doneText}>Done</Text>
+                                        </AdaptiveButton>
+                                    </WalkthroughableView>
+                                </FocusedCopilotStep>
+                            );
+                        }
+                        return (
+                            <View key={notif.id} style={[styles.notificationCard, { backgroundColor: themeColor }]}>
+                                <View style={styles.iconCircle}>
+                                    <Ionicons name="notifications-outline" size={30} color="#fff" />
+                                </View>
+                                <View style={styles.textContainer}>
+                                    <Text style={styles.notificationTitle}>{notif.title}</Text>
+                                    <Text style={styles.notificationMessage}>{notif.message}</Text>
+                                </View>
+
+                                {/* Done Button */}
+                                <AdaptiveButton
+                                    onPress={() => handleMarkAsDone(notif)}
+                                    style={styles.closeButton}
+                                    missPadding={15}
+                                    maxScale={1.2}
+                                    autoWidth
+                                >
+                                    <Ionicons name="checkmark-circle" size={28} color="#fff" />
+                                    <Text style={styles.doneText}>Done</Text>
+                                </AdaptiveButton>
+                            </View>
+                        );
+                    })}
                 </View>
 
             </View>

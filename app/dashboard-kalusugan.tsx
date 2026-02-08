@@ -1,13 +1,24 @@
 import { AdaptiveButton } from '@/components/AdaptiveButton';
 import { Ionicons } from '@expo/vector-icons';
+import { useIsFocused } from '@react-navigation/native';
 import { useRouter } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { CopilotStep, walkthroughable } from 'react-native-copilot';
 import { auth } from '../configs/firebase';
 import { getMedicationsRealtime, Medication } from '../services/medication';
 
+const WalkthroughableView = walkthroughable(View);
+const WalkthroughableTouchableOpacity = walkthroughable(TouchableOpacity);
+
+const FocusedCopilotStep = ({ active, children, ...props }: any) => {
+    if (!active) return children;
+    return <CopilotStep {...props}>{children}</CopilotStep>;
+};
+
 export default function KalusuganDashboardScreen() {
     const router = useRouter();
+    const isFocused = useIsFocused();
     const [nextMed, setNextMed] = useState<Medication | null>(null);
 
     useEffect(() => {
@@ -37,19 +48,22 @@ export default function KalusuganDashboardScreen() {
             title: 'Mga Gamot',
             subtitle: 'View Your Medications',
             icon: 'medkit-outline',
-            route: '/dashboard-mga-gamot'
+            route: '/dashboard-mga-gamot',
+            desc: 'Pindutin dito para makita ang iyong mga gamot.'
         },
         {
             title: 'Presyon at Sugar',
             subtitle: 'Blood pressure & glucose',
             icon: 'pulse-outline',
-            route: '/dashboard-presyon'
+            route: '/dashboard-presyon',
+            desc: 'Pindutin dito para makita ang iyong presyon at sugar.'
         },
         {
             title: 'Appointment sa Doctor',
             subtitle: 'Schedule & view appointments',
             icon: 'calendar-outline',
-            route: '/dashboard-appointment'
+            route: '/dashboard-appointment',
+            desc: 'Pindutin dito para makita ang iyong mga appointment sa doktor.'
         },
     ];
 
@@ -72,60 +86,71 @@ export default function KalusuganDashboardScreen() {
             </View>
 
             {/* Reminder Card (Dynamic) */}
-            {nextMed ? (
-                <TouchableOpacity style={styles.reminderCard} onPress={() => router.push('/dashboard-mga-gamot')}>
-                    <View style={styles.reminderIconCircle}>
-                        <Ionicons name="notifications" size={30} color="#3b82f6" />
-                    </View>
-                    <View>
-                        <Text style={styles.reminderTitle}>Reminder: Inom ng Gamot</Text>
-                        <Text style={styles.reminderSubtitle}>{nextMed.name} {nextMed.dosage} - {nextMed.time}</Text>
-                    </View>
-                </TouchableOpacity>
-            ) : (
-                <View style={[styles.reminderCard, { backgroundColor: '#10b981' }]}>
-                    <View style={styles.reminderIconCircle}>
-                        <Ionicons name="checkmark-done" size={30} color="#10b981" />
-                    </View>
-                    <View>
-                        <Text style={styles.reminderTitle}>All Clear!</Text>
-                        <Text style={styles.reminderSubtitle}>No scheduled medications.</Text>
-                    </View>
-                </View>
-            )}
+            <FocusedCopilotStep active={isFocused} text="Ito ang paalala para sa iyong susunod na gamot." order={1} name="reminder">
+                <WalkthroughableView>
+                    {nextMed ? (
+                        <TouchableOpacity style={styles.reminderCard} onPress={() => router.push('/dashboard-mga-gamot')}>
+                            <View style={styles.reminderIconCircle}>
+                                <Ionicons name="notifications" size={30} color="#3b82f6" />
+                            </View>
+                            <View>
+                                <Text style={styles.reminderTitle}>Reminder: Inom ng Gamot</Text>
+                                <Text style={styles.reminderSubtitle}>{nextMed.name} {nextMed.dosage} - {nextMed.time}</Text>
+                            </View>
+                        </TouchableOpacity>
+                    ) : (
+                        <View style={[styles.reminderCard, { backgroundColor: '#10b981' }]}>
+                            <View style={styles.reminderIconCircle}>
+                                <Ionicons name="checkmark-done" size={30} color="#10b981" />
+                            </View>
+                            <View>
+                                <Text style={styles.reminderTitle}>All Clear!</Text>
+                                <Text style={styles.reminderSubtitle}>No scheduled medications.</Text>
+                            </View>
+                        </View>
+                    )}
+                </WalkthroughableView>
+            </FocusedCopilotStep>
 
             {/* Menu Options - Vertical List (3 Items) */}
             <View style={styles.menuContainer}>
                 {menuItems.map((item, index) => (
-                    <AdaptiveButton
-                        key={index}
-                        style={styles.menuItem}
-                        onPress={() => router.push(item.route as any)}
-                        missPadding={15}
-                        maxScale={1.05}
-                    >
-                        <View style={[styles.menuIconBox, { backgroundColor: '#dbeafe' }]}>
-                            <Ionicons name={item.icon as any} size={24} color="#2563eb" />
-                        </View>
-                        <View style={styles.menuTextContainer}>
-                            <Text style={styles.menuTitle}>{item.title}</Text>
-                            <Text style={styles.menuSubtitle}>{item.subtitle}</Text>
-                        </View>
-                        <Ionicons name="chevron-forward" size={24} color="#3b82f6" />
-                    </AdaptiveButton>
+                    <FocusedCopilotStep key={index} active={isFocused} text={item.desc} order={2 + index} name={`menu-${index}`}>
+                        <WalkthroughableView>
+                            <AdaptiveButton
+                                style={styles.menuItem}
+                                onPress={() => router.push(item.route as any)}
+                                missPadding={15}
+                                maxScale={1.05}
+                            >
+                                <View style={[styles.menuIconBox, { backgroundColor: '#dbeafe' }]}>
+                                    <Ionicons name={item.icon as any} size={24} color="#2563eb" />
+                                </View>
+                                <View style={styles.menuTextContainer}>
+                                    <Text style={styles.menuTitle}>{item.title}</Text>
+                                    <Text style={styles.menuSubtitle}>{item.subtitle}</Text>
+                                </View>
+                                <Ionicons name="chevron-forward" size={24} color="#3b82f6" />
+                            </AdaptiveButton>
+                        </WalkthroughableView>
+                    </FocusedCopilotStep>
                 ))}
             </View>
 
             {/* Footer Button - Reverted to Full Width */}
-            <AdaptiveButton
-                style={styles.footerButton}
-                onPress={() => { }}
-                missPadding={20}
-                maxScale={1.05}
-            >
-                <Ionicons name="mic" size={28} color="#fff" style={{ marginRight: 10 }} />
-                <Text style={styles.footerButtonText}>Magsalita</Text>
-            </AdaptiveButton>
+            <FocusedCopilotStep active={isFocused} text="Pindutin at magsalita para gamitin ang voice commands." order={5} name="voice-command">
+                <WalkthroughableView>
+                    <AdaptiveButton
+                        style={styles.footerButton}
+                        onPress={() => { }}
+                        missPadding={20}
+                        maxScale={1.05}
+                    >
+                        <Ionicons name="mic" size={28} color="#fff" style={{ marginRight: 10 }} />
+                        <Text style={styles.footerButtonText}>Magsalita</Text>
+                    </AdaptiveButton>
+                </WalkthroughableView>
+            </FocusedCopilotStep>
 
         </ScrollView>
     );
