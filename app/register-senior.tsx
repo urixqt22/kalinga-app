@@ -248,7 +248,7 @@ export default function RegisterSeniorScreen() {
                 </TouchableOpacity>
 
                 {/* Register Button */}
-                <AdaptiveButton style={styles.registerButton} onPress={handleRegister} missPadding={30} maxScale={1.05}>
+                <AdaptiveButton style={styles.registerButton} onPress={handleRegister} missPadding={5} maxScale={1.05}>
                     <Text style={[styles.registerButtonText, { fontSize: getFontSize(18) }]}>Register</Text>
                 </AdaptiveButton>
 
