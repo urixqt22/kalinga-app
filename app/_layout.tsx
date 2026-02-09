@@ -3,6 +3,7 @@ import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { CopilotProvider } from 'react-native-copilot';
 import 'react-native-reanimated';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import ContextualHelpTooltip from '@/components/ContextualHelpTooltip';
 import { IdleManager } from '@/components/IdleManager';
@@ -14,30 +15,32 @@ export default function RootLayout() {
 
   return (
     <SettingsProvider>
-      <CopilotProvider
-        tooltipComponent={ContextualHelpTooltip}
-        overlay="view"
-        animated={true}
-        arrowColor="transparent" // Clean look
-        labels={{
-          finish: "Tapos na",
-          next: "Susunod",
-          skip: "Isara"
-        }}
-      >
-        <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-          <IdleManager>
-            <Stack screenOptions={{ headerShown: false }}>
-              {/* <Stack.Screen name="(tabs)" options={{ headerShown: false }} /> */}
-              <Stack.Screen name="role-selection" options={{ headerShown: false }} />
-              <Stack.Screen name="welcome-senior" options={{ headerShown: false }} />
-              <Stack.Screen name="dashboard-senior" options={{ headerShown: false }} />
-              <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
-            </Stack>
-            <StatusBar style="auto" />
-          </IdleManager>
-        </ThemeProvider>
-      </CopilotProvider>
+      <SafeAreaProvider>
+        <CopilotProvider
+          tooltipComponent={ContextualHelpTooltip}
+          overlay="view"
+          animated={true}
+          arrowColor="transparent" // Clean look
+          labels={{
+            finish: "Tapos na",
+            next: "Susunod",
+            skip: "Isara"
+          }}
+        >
+          <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+            <IdleManager>
+              <Stack screenOptions={{ headerShown: false }}>
+                {/* <Stack.Screen name="(tabs)" options={{ headerShown: false }} /> */}
+                <Stack.Screen name="role-selection" options={{ headerShown: false }} />
+                <Stack.Screen name="welcome-senior" options={{ headerShown: false }} />
+                <Stack.Screen name="dashboard-senior" options={{ headerShown: false }} />
+                <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
+              </Stack>
+              <StatusBar style="auto" />
+            </IdleManager>
+          </ThemeProvider>
+        </CopilotProvider>
+      </SafeAreaProvider>
     </SettingsProvider>
   );
 }

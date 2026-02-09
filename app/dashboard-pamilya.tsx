@@ -176,7 +176,7 @@ export default function PamilyaDashboardScreen() {
                     <View style={styles.headerTop}>
                         {/* Back Button - Step 4 or 5 */}
                         <FocusedCopilotStep active={isFocused && isSenior && !modalVisible} text="Pindutin dito para bumalik." order={backOrder} name="back-btn">
-                            <WalkthroughableView style={{ alignSelf: 'flex-start' }}>
+                            <WalkthroughableView style={{ alignSelf: 'flex-start' }} collapsable={false}>
                                 <AdaptiveButton adaptive={!isCaretaker}
                                     style={styles.backButton}
                                     onPress={() => router.back()}
@@ -191,11 +191,12 @@ export default function PamilyaDashboardScreen() {
                         </FocusedCopilotStep>
 
                         <FocusedCopilotStep active={isFocused && isSenior && !modalVisible && hasContacts} text="Pindutin dito para magdagdag ng miyembro ng pamilya." order={2} name="top-right-add-btn">
-                            <WalkthroughableView>
+                            <WalkthroughableView collapsable={false} style={{ minWidth: 44, minHeight: 44, justifyContent: 'center', alignItems: 'flex-end' }}>
                                 <AdaptiveButton adaptive={!isCaretaker}
                                     onPress={() => setModalVisible(true)}
-                                    autoWidth
-                                    missPadding={20}
+                                    // autoWidth // Removed to ensure it has size
+                                    style={{ padding: 10 }} // Ensure touch target
+                                    missPadding={10}
                                     maxScale={1.1}
                                 >
                                     <Ionicons name="person-add" size={24} color="#fff" />
@@ -215,13 +216,13 @@ export default function PamilyaDashboardScreen() {
                         ) : (
                             <>
                                 {contacts.length === 0 ? (
-                                    <View style={styles.emptyState}>
+                                    <View style={[styles.emptyState, { flex: 1 }]}>
                                         <MaterialCommunityIcons name="account-group-outline" size={60} color="#ccc" />
                                         <Text style={styles.emptyText}>No family members added yet.</Text>
 
                                         {/* Add Member Button - Step 1 (Empty State) */}
                                         <FocusedCopilotStep active={isFocused && isSenior && !modalVisible} text="Pindutin dito para magdagdag ng miyembro ng pamilya." order={1} name="add-member-btn">
-                                            <WalkthroughableView>
+                                            <WalkthroughableView collapsable={false}>
                                                 <AdaptiveButton adaptive={!isCaretaker}
                                                     style={[styles.addButton, { backgroundColor: themeColor }]}
                                                     containerStyle={{ alignSelf: 'center' }}
@@ -241,7 +242,7 @@ export default function PamilyaDashboardScreen() {
                                         if (index === 0) {
                                             return (
                                                 <FocusedCopilotStep key={contact.id} active={isFocused && isSenior && !modalVisible} text="Dito makikita ang iyong pamilya at ang kanilang status." order={1} name="first-contact-card">
-                                                    <WalkthroughableView>
+                                                    <WalkthroughableView collapsable={false}>
                                                         <FamilyCard contact={contact} />
                                                     </WalkthroughableView>
                                                 </FocusedCopilotStep>
@@ -260,7 +261,7 @@ export default function PamilyaDashboardScreen() {
             < View style={styles.footer} >
                 {/* Emergency Button - Step 2 or 3 */}
                 <FocusedCopilotStep active={isFocused && isSenior && !modalVisible} text="Pindutin dito para tumawag sa emergency hotline." order={emergencyOrder} name="emergency-btn">
-                    <WalkthroughableView style={{ flex: 1 }}>
+                    <WalkthroughableView style={{ flex: 1 }} collapsable={false}>
                         <AdaptiveButton adaptive={!isCaretaker}
                             style={styles.emergencyButton}
                             containerStyle={{ width: '100%' }} // Ensure fill
@@ -276,7 +277,7 @@ export default function PamilyaDashboardScreen() {
 
                 {/* Mic Button - Step 3 or 4 */}
                 <FocusedCopilotStep active={isFocused && isSenior && !modalVisible} text="Pindutin at magsalita para sa iba pang tulong." order={micOrder} name="mic-btn">
-                    <WalkthroughableView>
+                    <WalkthroughableView collapsable={false}>
                         <AdaptiveButton adaptive={!isCaretaker}
                             style={styles.micButton}
                             onPress={() => { }}
@@ -299,66 +300,70 @@ export default function PamilyaDashboardScreen() {
             >
                 <View style={styles.modalOverlay}>
                     <View style={styles.modalContent}>
-                        <Text style={[styles.modalTitle, { color: themeColor }]}>Add Family Member</Text>
+                        <ScrollView contentContainerStyle={{ flexGrow: 1, alignItems: 'center' }} showsVerticalScrollIndicator={false}>
+                            <Text style={[styles.modalTitle, { color: themeColor }]}>Add Family Member</Text>
 
-                        <Text style={styles.label}>Name</Text>
-                        <FocusedCopilotStep active={isFocused && isSenior && modalVisible} text="Ilagay dito ang pangalan ng miyembro ng pamilya." order={1} name="modal-input-name">
-                            <WalkthroughableView>
-                                <TextInput
-                                    style={styles.input}
-                                    placeholder="e.g. Maria"
-                                    value={newName}
-                                    onChangeText={setNewName}
-                                />
-                            </WalkthroughableView>
-                        </FocusedCopilotStep>
+                            <View style={{ width: '100%', marginBottom: 15 }}>
+                                <Text style={styles.label}>Name</Text>
+                                <FocusedCopilotStep active={isFocused && isSenior && modalVisible} text="Ilagay dito ang pangalan ng miyembro ng pamilya." order={1} name="modal-input-name">
+                                    <WalkthroughableView>
+                                        <TextInput
+                                            style={styles.input}
+                                            placeholder="e.g. Maria"
+                                            value={newName}
+                                            onChangeText={setNewName}
+                                        />
+                                    </WalkthroughableView>
+                                </FocusedCopilotStep>
 
-                        <Text style={styles.label}>Relationship (e.g. Anak, Apo)</Text>
-                        <FocusedCopilotStep active={isFocused && isSenior && modalVisible} text="Ilagay dito kung ano mo siya (halimbawa: Anak, Apo)." order={2} name="modal-input-relation">
-                            <WalkthroughableView>
-                                <TextInput
-                                    style={styles.input}
-                                    placeholder="e.g. Anak"
-                                    value={newRelation}
-                                    onChangeText={setNewRelation}
-                                />
-                            </WalkthroughableView>
-                        </FocusedCopilotStep>
+                                <Text style={styles.label}>Relationship (e.g. Anak, Apo)</Text>
+                                <FocusedCopilotStep active={isFocused && isSenior && modalVisible} text="Ilagay dito kung ano mo siya (halimbawa: Anak, Apo)." order={2} name="modal-input-relation">
+                                    <WalkthroughableView>
+                                        <TextInput
+                                            style={styles.input}
+                                            placeholder="e.g. Anak"
+                                            value={newRelation}
+                                            onChangeText={setNewRelation}
+                                        />
+                                    </WalkthroughableView>
+                                </FocusedCopilotStep>
 
-                        <Text style={styles.label}>Phone Number</Text>
-                        <FocusedCopilotStep active={isFocused && isSenior && modalVisible} text="Ilagay dito ang kanilang numero ng telepono." order={3} name="modal-input-phone">
-                            <WalkthroughableView>
-                                <TextInput
-                                    style={styles.input}
-                                    placeholder="0917..."
-                                    keyboardType="phone-pad"
-                                    value={newPhone}
-                                    onChangeText={setNewPhone}
-                                />
-                            </WalkthroughableView>
-                        </FocusedCopilotStep>
+                                <Text style={styles.label}>Phone Number</Text>
+                                <FocusedCopilotStep active={isFocused && isSenior && modalVisible} text="Ilagay dito ang kanilang numero ng telepono." order={3} name="modal-input-phone">
+                                    <WalkthroughableView>
+                                        <TextInput
+                                            style={styles.input}
+                                            placeholder="0917..."
+                                            keyboardType="phone-pad"
+                                            value={newPhone}
+                                            onChangeText={setNewPhone}
+                                        />
+                                    </WalkthroughableView>
+                                </FocusedCopilotStep>
+                            </View>
 
-                        <View style={styles.modalButtons}>
-                            <FocusedCopilotStep active={isFocused && isSenior && modalVisible} text="Pindutin ito kung ayaw mong ituloy." order={5} name="modal-btn-cancel">
-                                <WalkthroughableView style={{ flex: 1 }}>
-                                    <TouchableOpacity style={styles.cancelButton} onPress={() => setModalVisible(false)}>
-                                        <Text style={styles.cancelButtonText}>Cancel</Text>
-                                    </TouchableOpacity>
-                                </WalkthroughableView>
-                            </FocusedCopilotStep>
+                            <View style={styles.modalButtons}>
+                                <FocusedCopilotStep active={isFocused && isSenior && modalVisible} text="Pindutin ito kung ayaw mong ituloy." order={5} name="modal-btn-cancel">
+                                    <WalkthroughableView style={{ flex: 1 }}>
+                                        <TouchableOpacity style={styles.cancelButton} onPress={() => setModalVisible(false)}>
+                                            <Text style={styles.cancelButtonText}>Cancel</Text>
+                                        </TouchableOpacity>
+                                    </WalkthroughableView>
+                                </FocusedCopilotStep>
 
-                            <FocusedCopilotStep active={isFocused && isSenior && modalVisible} text="Pindutin ito para i-save ang impormasyon." order={4} name="modal-btn-save">
-                                <WalkthroughableView style={{ flex: 1 }}>
-                                    <TouchableOpacity
-                                        style={[styles.saveButton, { backgroundColor: themeColor }]}
-                                        onPress={handleAddContact}
-                                        disabled={adding}
-                                    >
-                                        {adding ? <ActivityIndicator color="#fff" /> : <Text style={styles.saveButtonText}>Save</Text>}
-                                    </TouchableOpacity>
-                                </WalkthroughableView>
-                            </FocusedCopilotStep>
-                        </View>
+                                <FocusedCopilotStep active={isFocused && isSenior && modalVisible} text="Pindutin ito para i-save ang impormasyon." order={4} name="modal-btn-save">
+                                    <WalkthroughableView style={{ flex: 1 }}>
+                                        <TouchableOpacity
+                                            style={[styles.saveButton, { backgroundColor: themeColor }]}
+                                            onPress={handleAddContact}
+                                            disabled={adding}
+                                        >
+                                            {adding ? <ActivityIndicator color="#fff" /> : <Text style={styles.saveButtonText}>Save</Text>}
+                                        </TouchableOpacity>
+                                    </WalkthroughableView>
+                                </FocusedCopilotStep>
+                            </View>
+                        </ScrollView>
                     </View>
                 </View>
             </Modal >
@@ -372,26 +377,19 @@ const styles = StyleSheet.create({
         backgroundColor: '#f0f9ff',
     },
     scrollContainer: {
+        flexGrow: 1, // Allow centering of empty state
         paddingBottom: 100, // Space for footer
         // PaddingTop handled dynamically
     },
     header: {
-        // paddingTop: 60, // Handled dynamically in ScrollView
-        paddingBottom: 20,
+        paddingTop: 60,
+        paddingBottom: 30,
         paddingHorizontal: 20,
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
         borderBottomLeftRadius: 30,
         borderBottomRightRadius: 30,
-        elevation: 5,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.1,
-        shadowRadius: 5,
-        zIndex: 10,
     },
     headerTop: {
+        width: '100%', // Ensure buttons spread across full width
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
@@ -532,9 +530,10 @@ const styles = StyleSheet.create({
     modalContent: {
         backgroundColor: '#fff',
         borderRadius: 20,
-        padding: 25,
+        padding: 20,
         width: '100%',
         maxWidth: 350,
+        maxHeight: '80%', // Limit height to allow scrolling
         elevation: 5,
     },
     modalTitle: {
@@ -542,6 +541,7 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         marginBottom: 20,
         textAlign: 'center',
+        marginTop: 10,
     },
     label: {
         fontSize: 14,

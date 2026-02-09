@@ -1,13 +1,14 @@
 import { AdaptiveButton } from '@/components/AdaptiveButton';
-import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { ActivityIndicator, Image, KeyboardAvoidingView, Modal, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { registerSenior } from '../services/auth';
 
 export default function RegisterSeniorScreen() {
     const router = useRouter();
+    const scrollViewRef = useRef<ScrollView>(null);
 
     const [name, setName] = useState('');
     const [password, setPassword] = useState('');
@@ -105,7 +106,11 @@ export default function RegisterSeniorScreen() {
 
     return (
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
-            <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.container}>
+            <ScrollView
+                ref={scrollViewRef}
+                style={{ flex: 1 }}
+                contentContainerStyle={styles.container}
+            >
                 {/* Loading Modal */}
                 <Modal transparent={true} animationType="fade" visible={isLoading}>
                     <View style={styles.loadingContainer}>
@@ -178,22 +183,40 @@ export default function RegisterSeniorScreen() {
                 {/* Header */}
                 <View style={styles.header}>
                     <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 15 }}>
-                        <TouchableOpacity onPress={() => router.back()} style={{ flexDirection: 'row', alignItems: 'center' }}>
+                        <AdaptiveButton
+                            style={{ flexDirection: 'row', alignItems: 'center' }}
+                            onPress={() => router.back()}
+                            autoWidth
+                            missPadding={15}
+                            maxScale={1.1}
+                        >
                             <Ionicons name="arrow-back" size={24} color="#fff" />
                             <Text style={[styles.backText, { fontSize: getFontSize(16) }]}>Bumalik</Text>
-                        </TouchableOpacity>
+                        </AdaptiveButton>
 
-                        {/* Font Size Toggle Button */}
-                        <TouchableOpacity onPress={toggleFontSize} style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.2)', paddingHorizontal: 10, paddingVertical: 5, borderRadius: 15 }}>
-                            <MaterialCommunityIcons name="format-size" size={20} color="#fff" style={{ marginRight: 5 }} />
+                        {/* Font Size Toggle Button - Fixed Visibility */}
+                        <TouchableOpacity
+                            onPress={toggleFontSize}
+                            style={{
+                                flexDirection: 'row',
+                                alignItems: 'center',
+                                backgroundColor: 'rgba(255,255,255,0.25)',
+                                paddingHorizontal: 12,
+                                paddingVertical: 8,
+                                borderRadius: 20,
+                                minWidth: 80, // Ensure it doesn't collapse
+                                justifyContent: 'center'
+                            }}
+                        >
+                            <Ionicons name="text" size={20} color="#fff" style={{ marginRight: 5 }} />
                             <Text style={{ color: '#fff', fontWeight: 'bold', fontSize: 14 }}>
                                 {Math.round(fontSizeScale * 100)}%
                             </Text>
                         </TouchableOpacity>
                     </View>
 
-                    <Text style={[styles.headerTitle, { fontSize: getFontSize(26) }]}>Gumawa ng Account</Text>
-                    <Text style={[styles.headerSubtitle, { fontSize: getFontSize(14) }]}>Create your account for personalized care.</Text>
+                    <Text style={[styles.headerTitle, { fontSize: getFontSize(32) }]}>Gumawa ng Account</Text>
+                    <Text style={[styles.headerSubtitle, { fontSize: getFontSize(16) }]}>Create your account for personalized care.</Text>
                 </View>
 
                 {/* Form */}
@@ -262,7 +285,23 @@ export default function RegisterSeniorScreen() {
                     </View>
                 </View>
             </ScrollView>
-        </KeyboardAvoidingView>
+
+            {/* Scroll Assistant Buttons */}
+            <View style={styles.scrollAssistantContainer}>
+                <TouchableOpacity
+                    style={styles.scrollButton}
+                    onPress={() => scrollViewRef.current?.scrollTo({ y: 0, animated: true })}
+                >
+                    <Ionicons name="arrow-up" size={24} color="#fff" />
+                </TouchableOpacity>
+                <TouchableOpacity
+                    style={styles.scrollButton}
+                    onPress={() => scrollViewRef.current?.scrollToEnd({ animated: true })}
+                >
+                    <Ionicons name="arrow-down" size={24} color="#fff" />
+                </TouchableOpacity>
+            </View>
+        </KeyboardAvoidingView >
     );
 }
 
@@ -270,36 +309,37 @@ const styles = StyleSheet.create({
     container: {
         flexGrow: 1,
         backgroundColor: '#fff',
-        paddingBottom: 50,
+        paddingBottom: 250, // Massively increased padding to ensure scrolling
     },
     header: {
-        backgroundColor: '#2563eb', // Blue
-        paddingTop: 60,
-        paddingBottom: 30,
+        backgroundColor: '#3b82f6', // Lighter Blue from Kalusugan Dashboard
+        paddingTop: 60, // Fixed padding for consistency
+        paddingBottom: 20,
         paddingHorizontal: 20,
-        borderBottomLeftRadius: 20,
-        borderBottomRightRadius: 20,
+        borderBottomLeftRadius: 30,
+        borderBottomRightRadius: 30,
     },
     backButton: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginBottom: 15,
+        // marginBottom: 15, // Handled by container
     },
     backText: {
         color: '#fff',
         fontSize: 16,
+        fontWeight: 'bold',
         marginLeft: 5,
-        fontWeight: '600',
     },
     headerTitle: {
         color: '#fff',
-        fontSize: 26,
+        fontSize: 32,
         fontWeight: 'bold',
-        marginBottom: 5,
+        // marginBottom: 5, // Removed to match Kalusugan
     },
     headerSubtitle: {
-        color: '#bfdbfe',
-        fontSize: 14,
+        color: '#dbeafe',
+        fontSize: 16,
+        marginTop: 5,
     },
     formContainer: {
         padding: 24,
@@ -518,5 +558,24 @@ const styles = StyleSheet.create({
         color: '#fff',
         fontSize: 16,
         fontWeight: 'bold',
+    },
+    scrollAssistantContainer: {
+        position: 'absolute',
+        bottom: 20,
+        right: 20,
+        gap: 10,
+    },
+    scrollButton: {
+        width: 50,
+        height: 50,
+        borderRadius: 25,
+        backgroundColor: 'rgba(37, 99, 235, 0.7)', // Blue with opacity
+        justifyContent: 'center',
+        alignItems: 'center',
+        elevation: 5,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.25,
+        shadowRadius: 3.84,
     },
 });

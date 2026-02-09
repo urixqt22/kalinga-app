@@ -262,7 +262,7 @@ const styles = StyleSheet.create({
     container: {
         flexGrow: 1,
         backgroundColor: '#fff',
-        paddingBottom: 50,
+        paddingBottom: 150, // Increased padding for large fonts/scrolling
     },
     header: {
         backgroundColor: '#a855f7', // Purple

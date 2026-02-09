@@ -18,7 +18,7 @@ const FocusedCopilotStep = ({ active, children, ...props }: any) => {
     return <CopilotStep {...props}>{children}</CopilotStep>;
 };
 
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function DashboardSeniorScreen() {
     const router = useRouter();
@@ -36,132 +36,130 @@ export default function DashboardSeniorScreen() {
     };
 
     return (
-        <ScrollView contentContainerStyle={[styles.container, { paddingTop: Math.max(insets.top, 20) + 20 }]}>
-            {/* Header */}
-            <View style={styles.header}>
-                <FocusedCopilotStep active={isFocused} text="Pindutin dito para mag-logout sa iyong account." order={6} name="logout-btn">
-                    <WalkthroughableView style={{ alignSelf: 'flex-start' }}>
-                        <AdaptiveButton
-                            style={styles.logoutButton}
-                            onPress={handleLogout}
-                            autoWidth
-                            missPadding={20}
-                            maxScale={1.1}
+        <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
+            <ScrollView contentContainerStyle={[styles.container, { paddingTop: 20 }]}>
+                {/* Header */}
+                <View style={styles.header}>
+                    <FocusedCopilotStep active={isFocused} text="Pindutin dito para mag-logout sa iyong account." order={6} name="logout-btn">
+                        <WalkthroughableView style={{ alignSelf: 'flex-start' }}>
+                            <AdaptiveButton
+                                style={styles.logoutButton}
+                                onPress={handleLogout}
+                                autoWidth
+                                missPadding={20}
+                                maxScale={1.1}
+                            >
+                                <Ionicons name="log-out-outline" size={20} color="#2563eb" />
+                                <Text style={[styles.logoutText, { fontSize: getFontSize(14) }]}>Logout</Text>
+                            </AdaptiveButton>
+                        </WalkthroughableView>
+                    </FocusedCopilotStep>
+                    <FocusedCopilotStep active={isFocused} text="Tingnan ang iyong mga abiso (notifications) dito." order={4} name="notifications">
+                        <WalkthroughableTouchableOpacity
+                            style={styles.notificationContainer}
+                            onPress={() => router.push('/dashboard-notifications-senior')}
                         >
-                            <Ionicons name="log-out-outline" size={20} color="#2563eb" />
-                            <Text style={[styles.logoutText, { fontSize: getFontSize(14) }]}>Logout</Text>
-                        </AdaptiveButton>
-                    </WalkthroughableView>
-                </FocusedCopilotStep>
-                <FocusedCopilotStep active={isFocused} text="Tingnan ang iyong mga abiso (notifications) dito." order={4} name="notifications">
-                    <WalkthroughableTouchableOpacity
-                        style={styles.notificationContainer}
-                        onPress={() => router.push('/dashboard-notifications-senior')}
-                    >
-                        <Ionicons name="notifications" size={30} color="#2563eb" />
-                        {hasNotifications && <View style={styles.notificationBadge} />}
-                    </WalkthroughableTouchableOpacity>
-                </FocusedCopilotStep>
-            </View>
-
-            {/* Profile Section */}
-            <View style={styles.profileSection}>
-                <View style={styles.logoCircle}>
-                    <Ionicons name="heart" size={50} color="#fff" />
-                    <View style={styles.smileIcon}>
-                        <Ionicons name="happy" size={24} color="#2563eb" />
-                    </View>
+                            <Ionicons name="notifications" size={30} color="#2563eb" />
+                            {hasNotifications && <View style={styles.notificationBadge} />}
+                        </WalkthroughableTouchableOpacity>
+                    </FocusedCopilotStep>
                 </View>
-                <Text style={[styles.appName, { fontSize: getFontSize(22) }]}>KALINGA</Text>
-                <Text style={[styles.greeting, { fontSize: getFontSize(14) }]}>Mabuhay, {userName || 'Senior'}</Text>
-                <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: getFontSize(12), marginTop: 2 }} selectable>ID: {auth.currentUser?.uid}</Text>
-            </View>
 
-            {/* Menu Buttons */}
-            <View style={styles.menuContainer}>
-                <FocusedCopilotStep active={isFocused} text="Pindutin dito para makita ang iyong datos sa kalusugan." order={1} name="health">
-                    <WalkthroughableView style={{ width: '95%', alignSelf: 'center' }}>
-                        <AdaptiveButton
-                            style={styles.menuButton}
-                            onPress={() => router.push('/dashboard-kalusugan')}
-                            missPadding={0} // Disable extra padding to fix walkthrough highlight
-                            maxScale={1.05}
-                        >
-                            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                {/* Profile Section */}
+                <View style={styles.profileSection}>
+                    <View style={styles.logoCircle}>
+                        <Ionicons name="heart" size={50} color="#fff" />
+                        <View style={styles.smileIcon}>
+                            <Ionicons name="happy" size={24} color="#2563eb" />
+                        </View>
+                    </View>
+                    <Text style={[styles.appName, { fontSize: getFontSize(22) }]}>KALINGA</Text>
+                    <Text style={[styles.greeting, { fontSize: getFontSize(14) }]}>Mabuhay, {userName || 'Senior'}</Text>
+                    <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: getFontSize(12), marginTop: 2 }} selectable>ID: {auth.currentUser?.uid}</Text>
+                </View>
+
+                {/* Menu Buttons */}
+                <View style={styles.menuContainer}>
+                    <FocusedCopilotStep active={isFocused} text="Pindutin dito para makita ang iyong datos sa kalusugan." order={1} name="health">
+                        <WalkthroughableView style={{ width: '100%', alignSelf: 'center' }} collapsable={false}>
+                            <AdaptiveButton
+                                style={styles.menuButton}
+                                onPress={() => router.push('/dashboard-kalusugan')}
+                                missPadding={0} // Disable extra padding to fix walkthrough highlight
+                                maxScale={1.05}
+                            >
                                 <View style={[styles.menuIconCircle, { backgroundColor: 'rgba(59, 130, 246, 0.2)' }]}>
                                     <Ionicons name="heart-outline" size={24} color="#fff" />
                                 </View>
                                 <Text style={[styles.menuText, { fontSize: getFontSize(18) }]}>Kalusugan</Text>
-                            </View>
-                            <Ionicons name="chevron-forward" size={24} color="#fff" />
-                        </AdaptiveButton>
-                    </WalkthroughableView>
-                </FocusedCopilotStep>
+                                <Ionicons name="chevron-forward" size={24} color="#fff" />
+                            </AdaptiveButton>
+                        </WalkthroughableView>
+                    </FocusedCopilotStep>
 
-                <FocusedCopilotStep active={isFocused} text="Dito mo makikita ang mga serbisyo ng gobyerno." order={2} name="services">
-                    <WalkthroughableView style={{ width: '95%', alignSelf: 'center' }}>
-                        <AdaptiveButton
-                            style={styles.menuButton}
-                            onPress={() => router.push('/dashboard-serbisyo')}
-                            missPadding={0} // Disable extra padding
-                        >
-                            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                    <FocusedCopilotStep active={isFocused} text="Dito mo makikita ang mga serbisyo ng gobyerno." order={2} name="services">
+                        <WalkthroughableView style={{ width: '100%', alignSelf: 'center' }} collapsable={false}>
+                            <AdaptiveButton
+                                style={styles.menuButton}
+                                onPress={() => router.push('/dashboard-serbisyo')}
+                                missPadding={0} // Disable extra padding
+                            >
                                 <View style={[styles.menuIconCircle, { backgroundColor: 'rgba(59, 130, 246, 0.2)' }]}>
                                     <Ionicons name="newspaper-outline" size={24} color="#fff" />
                                 </View>
-                                <Text style={[styles.menuText, { fontSize: getFontSize(16), maxWidth: '80%' }]} numberOfLines={1} adjustsFontSizeToFit>Serbisyo ng Gobyerno</Text>
-                            </View>
-                            <Ionicons name="chevron-forward" size={24} color="#fff" />
-                        </AdaptiveButton>
-                    </WalkthroughableView>
-                </FocusedCopilotStep>
+                                <Text style={[styles.menuText, { fontSize: getFontSize(16) }]} numberOfLines={1} adjustsFontSizeToFit>Serbisyo ng Gobyerno</Text>
+                                <Ionicons name="chevron-forward" size={24} color="#fff" />
+                            </AdaptiveButton>
+                        </WalkthroughableView>
+                    </FocusedCopilotStep>
 
-                <FocusedCopilotStep active={isFocused} text="Pindutin ito para sa mga feature ng pamilya." order={3} name="family">
-                    <WalkthroughableView style={{ width: '95%', alignSelf: 'center' }}>
-                        <AdaptiveButton
-                            style={styles.menuButton}
-                            onPress={() => router.push('/dashboard-pamilya')}
-                            maxScale={1.05}
-                        >
-                            <View style={styles.menuIconCircle}>
-                                <Ionicons name="people-outline" size={30} color="#fff" />
-                            </View>
-                            <Text style={[styles.menuText, { fontSize: getFontSize(18) }]}>Pamilya</Text>
-                            <Ionicons name="chevron-forward" size={24} color="#fff" />
-                        </AdaptiveButton>
-                    </WalkthroughableView>
-                </FocusedCopilotStep>
-            </View>
+                    <FocusedCopilotStep active={isFocused} text="Pindutin ito para sa mga feature ng pamilya." order={3} name="family">
+                        <WalkthroughableView style={{ width: '100%', alignSelf: 'center' }} collapsable={false}>
+                            <AdaptiveButton
+                                style={styles.menuButton}
+                                onPress={() => router.push('/dashboard-pamilya')}
+                                maxScale={1.05}
+                            >
+                                <View style={styles.menuIconCircle}>
+                                    <Ionicons name="people-outline" size={30} color="#fff" />
+                                </View>
+                                <Text style={[styles.menuText, { fontSize: getFontSize(18) }]}>Pamilya</Text>
+                                <Ionicons name="chevron-forward" size={24} color="#fff" />
+                            </AdaptiveButton>
+                        </WalkthroughableView>
+                    </FocusedCopilotStep>
+                </View>
 
 
-            {/* Footer Controls */}
-            <View style={styles.footerControls}>
-                <FocusedCopilotStep active={isFocused} text="Pindutin dito para baguhin ang iyong mga settings." order={5} name="settings">
-                    <WalkthroughableView>
-                        {/* Settings button is autoWidth, so we don't need fixed width on wrapper, just let it wrap content */}
-                        <AdaptiveButton
-                            style={styles.settingsButton}
-                            onPress={() => router.push('/dashboard-settings')}
-                            autoWidth
-                            missPadding={20}
-                            maxScale={1.1}
-                        >
-                            <Ionicons name="settings-outline" size={24} color="#2563eb" />
-                            <Text style={styles.settingsText}>Settings</Text>
-                        </AdaptiveButton>
-                    </WalkthroughableView>
-                </FocusedCopilotStep>
+                {/* Footer Controls */}
+                <View style={styles.footerControls}>
+                    <FocusedCopilotStep active={isFocused} text="Pindutin dito para baguhin ang iyong mga settings." order={5} name="settings">
+                        <WalkthroughableView>
+                            {/* Settings button is autoWidth, so we don't need fixed width on wrapper, just let it wrap content */}
+                            <AdaptiveButton
+                                style={styles.settingsButton}
+                                onPress={() => router.push('/dashboard-settings')}
+                                autoWidth
+                                missPadding={20}
+                                maxScale={1.1}
+                            >
+                                <Ionicons name="settings-outline" size={24} color="#2563eb" />
+                                <Text style={styles.settingsText}>Settings</Text>
+                            </AdaptiveButton>
+                        </WalkthroughableView>
+                    </FocusedCopilotStep>
 
-                <FocusedCopilotStep active={isFocused} text="Pindutin at magsalita para sa iba pang tulong." order={7} name="voice-btn">
-                    <WalkthroughableView>
-                        <TouchableOpacity style={styles.micButton}>
-                            <Ionicons name="mic" size={32} color="#fff" />
-                        </TouchableOpacity>
-                    </WalkthroughableView>
-                </FocusedCopilotStep>
-            </View>
+                    <FocusedCopilotStep active={isFocused} text="Pindutin at magsalita para sa iba pang tulong." order={7} name="voice-btn">
+                        <WalkthroughableView>
+                            <TouchableOpacity style={styles.micButton}>
+                                <Ionicons name="mic" size={32} color="#fff" />
+                            </TouchableOpacity>
+                        </WalkthroughableView>
+                    </FocusedCopilotStep>
+                </View>
 
-        </ScrollView>
+            </ScrollView>
+        </SafeAreaView>
     );
 }
 
@@ -229,7 +227,7 @@ const styles = StyleSheet.create({
     },
     menuButton: {
         backgroundColor: '#3b82f6', // Bright blue
-        width: '95%',
+        width: '100%',
         alignSelf: 'center',
         flexDirection: 'row',
         alignItems: 'center',
