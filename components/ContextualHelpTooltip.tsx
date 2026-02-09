@@ -3,8 +3,48 @@ import React from 'react';
 import { Text, TextStyle, TouchableOpacity, View, ViewStyle } from 'react-native';
 import { useCopilot } from 'react-native-copilot';
 
+import * as Speech from 'expo-speech';
+
 const ContextualHelpTooltip = ({ labels }: any) => {
     const { goToNext, stop, currentStep, isLastStep } = useCopilot();
+
+    const [selectedVoice, setSelectedVoice] = React.useState<string | null>(null);
+
+    React.useEffect(() => {
+        const initVoice = async () => {
+            try {
+                const voices = await Speech.getAvailableVoicesAsync();
+                // Look for Filipino/Tagalog voices
+                const tagalogVoice = voices.find(v =>
+                    v.language.includes('fil') ||
+                    v.language.includes('tl') ||
+                    v.identifier.toLowerCase().includes('fil') ||
+                    v.identifier.toLowerCase().includes('pinoy')
+                );
+
+                if (tagalogVoice) {
+                    setSelectedVoice(tagalogVoice.identifier);
+                }
+            } catch (e) {
+                console.warn('Failed to get voices', e);
+            }
+        };
+        initVoice();
+    }, []);
+
+    React.useEffect(() => {
+        if (currentStep?.text) {
+            Speech.stop();
+            const options: Speech.SpeechOptions = { language: 'tl' };
+            if (selectedVoice) {
+                options.voice = selectedVoice;
+            }
+            Speech.speak(currentStep.text, options);
+        }
+        return () => {
+            Speech.stop();
+        };
+    }, [currentStep, selectedVoice]);
 
     return (
         <View style={styles.container}>
