@@ -16,6 +16,8 @@ const FocusedCopilotStep = ({ active, children, ...props }: any) => {
     return <CopilotStep {...props}>{children}</CopilotStep>;
 };
 
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
 export default function PamilyaDashboardScreen() {
     const router = useRouter();
     const { role } = useLocalSearchParams();
@@ -24,6 +26,7 @@ export default function PamilyaDashboardScreen() {
     const themeColor = isCaretaker ? '#a855f7' : '#3b82f6';
     const textColor = isCaretaker ? '#6b21a8' : '#1e3a8a';
     const isFocused = useIsFocused();
+    const insets = useSafeAreaInsets();
 
     // State
     const [contacts, setContacts] = useState<FamilyContact[]>([]);
@@ -370,11 +373,23 @@ const styles = StyleSheet.create({
     },
     scrollContainer: {
         paddingBottom: 100, // Space for footer
+        // PaddingTop handled dynamically
     },
     header: {
-        paddingTop: 60,
+        // paddingTop: 60, // Handled dynamically in ScrollView
+        paddingBottom: 20,
         paddingHorizontal: 20,
-        paddingBottom: 30,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        borderBottomLeftRadius: 30,
+        borderBottomRightRadius: 30,
+        elevation: 5,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 5,
+        zIndex: 10,
     },
     headerTop: {
         flexDirection: 'row',
@@ -479,6 +494,8 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         gap: 15,
+        paddingBottom: 40, // Add padding for bottom navigation bar
+        backgroundColor: '#f0f9ff', // Ensure background covers behind nav bar if transparent
     },
     emergencyButton: {
         flex: 1,

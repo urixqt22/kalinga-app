@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { ActivityIndicator, Image, Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Image, KeyboardAvoidingView, Modal, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { registerCaretaker } from '../services/auth';
 
 export default function RegisterCaretakerScreen() {
@@ -101,158 +101,160 @@ export default function RegisterCaretakerScreen() {
     };
 
     return (
-        <ScrollView contentContainerStyle={styles.container}>
-            {/* Loading Modal */}
-            <Modal transparent={true} animationType="fade" visible={isLoading}>
-                <View style={styles.loadingContainer}>
-                    <View style={styles.loadingBox}>
-                        <ActivityIndicator size="large" color="#a855f7" />
-                        <Text style={styles.loadingText}>Creating Account...</Text>
-                    </View>
-                </View>
-            </Modal>
-
-            {/* Custom Success/Error Modal */}
-            <Modal transparent={true} animationType="fade" visible={modalVisible} onRequestClose={handleModalClose}>
-                <View style={styles.modalOverlay}>
-                    <View style={styles.modalContent}>
-                        <View style={[styles.iconContainer, modalType === 'error' ? styles.errorIcon : styles.successIcon]}>
-                            <Ionicons
-                                name={modalType === 'success' ? "checkmark-circle" : "alert-circle"}
-                                size={50}
-                                color="#fff"
-                            />
+        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
+            <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.container}>
+                {/* Loading Modal */}
+                <Modal transparent={true} animationType="fade" visible={isLoading}>
+                    <View style={styles.loadingContainer}>
+                        <View style={styles.loadingBox}>
+                            <ActivityIndicator size="large" color="#a855f7" />
+                            <Text style={styles.loadingText}>Creating Account...</Text>
                         </View>
-                        <Text style={styles.modalTitle}>
-                            {modalType === 'success' ? 'Success!' : 'Registration Failed'}
-                        </Text>
-                        <Text style={styles.modalMessage}>{modalMessage}</Text>
-                        <TouchableOpacity
-                            style={[styles.modalButton, modalType === 'error' ? styles.errorButton : styles.successButton]}
-                            onPress={handleModalClose}
-                        >
-                            <Text style={styles.modalButtonText}>
-                                {modalType === 'success' ? 'Continue' : 'Try Again'}
-                            </Text>
-                        </TouchableOpacity>
                     </View>
-                </View>
-            </Modal>
+                </Modal>
 
-            {/* Data Privacy Consent Modal */}
-            <Modal transparent={true} animationType="slide" visible={consentModalVisible} onRequestClose={() => setConsentModalVisible(false)}>
-                <View style={styles.modalOverlay}>
-                    <View style={styles.modalContent}>
-                        <Text style={styles.modalTitle}>Data Privacy Consent</Text>
-                        <ScrollView style={{ maxHeight: 300, marginBottom: 20 }}>
-                            <Text style={styles.consentText}>
-                                By clicking "I Agree", I hereby grant my free, voluntary, and unconditional consent to KALINGA-APP to collect, store, and process my personal data, which may include my name, contact details, government IDs, etc.
-                                {"\n"}{"\n"}
-                                I understand that this information will be used for the purpose of processing my membership, or providing medical services. I further authorize the app to share this information with government services solely for the fulfillment of the declared purpose.
-                                {"\n"}{"\n"}
-                                I acknowledge that I have been informed of my rights as a Data Subject under the Data Privacy Act of 2012, including the right to access, correct, or request the deletion of my data. For any privacy-related concerns, I may contact the Data Protection Officer at urixfarinas@gmail.com.
+                {/* Custom Success/Error Modal */}
+                <Modal transparent={true} animationType="fade" visible={modalVisible} onRequestClose={handleModalClose}>
+                    <View style={styles.modalOverlay}>
+                        <View style={styles.modalContent}>
+                            <View style={[styles.iconContainer, modalType === 'error' ? styles.errorIcon : styles.successIcon]}>
+                                <Ionicons
+                                    name={modalType === 'success' ? "checkmark-circle" : "alert-circle"}
+                                    size={50}
+                                    color="#fff"
+                                />
+                            </View>
+                            <Text style={styles.modalTitle}>
+                                {modalType === 'success' ? 'Success!' : 'Registration Failed'}
                             </Text>
-                        </ScrollView>
-                        <View style={styles.row}>
+                            <Text style={styles.modalMessage}>{modalMessage}</Text>
                             <TouchableOpacity
-                                style={[styles.consentButton, { backgroundColor: '#a855f7' }]}
-                                onPress={handleConsentAgree}
+                                style={[styles.modalButton, modalType === 'error' ? styles.errorButton : styles.successButton]}
+                                onPress={handleModalClose}
                             >
-                                <Text style={styles.consentButtonText}>I Agree</Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity
-                                style={[styles.consentButton, { backgroundColor: '#ef4444' }]}
-                                onPress={handleConsentDecline}
-                            >
-                                <Text style={styles.consentButtonText}>Cancel</Text>
+                                <Text style={styles.modalButtonText}>
+                                    {modalType === 'success' ? 'Continue' : 'Try Again'}
+                                </Text>
                             </TouchableOpacity>
                         </View>
                     </View>
-                </View>
-            </Modal>
+                </Modal>
 
-            {/* Header */}
-            <View style={styles.header}>
-                <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-                    <Ionicons name="arrow-back" size={24} color="#fff" />
-                    <Text style={styles.backText}>Bumalik</Text>
-                </TouchableOpacity>
-                <Text style={styles.headerTitle}>Gumawa ng Account</Text>
-                <Text style={styles.headerSubtitle}>Create your account for personalized care.</Text>
-            </View>
-
-            {/* Form */}
-            <View style={styles.formContainer}>
-                {/* Requirements */}
-                <View style={styles.requirementsBox}>
-                    <Text style={styles.reqTitle}>Mga Kailangan (Requirements)</Text>
-                    <Text style={styles.reqItem}>• Personal Information</Text>
-                </View>
-
-                {/* Inputs */}
-                <Text style={styles.label}>Pangalan(Name)</Text>
-                <TextInput style={styles.input} value={name} onChangeText={setName} />
-
-                <Text style={styles.label}>Password</Text>
-                <TextInput style={styles.input} value={password} onChangeText={setPassword} secureTextEntry />
-
-                <Text style={styles.label}>Kumpirmahin ang iyong Password</Text>
-                <TextInput style={styles.input} value={confirmPassword} onChangeText={setConfirmPassword} secureTextEntry />
-
-                <Text style={styles.label}>Contact Number</Text>
-                <TextInput style={styles.input} value={contact} onChangeText={setContact} keyboardType="phone-pad" />
-
-                {/* Gender Selection */}
-                <Text style={styles.label}>Kasarian (Gender)</Text>
-                <View style={styles.genderContainer}>
-                    {['Male', 'Female', 'Others'].map((option) => (
-                        <TouchableOpacity
-                            key={option}
-                            style={[styles.genderButton, gender === option && styles.genderButtonSelected]}
-                            onPress={() => setGender(option)}
-                        >
-                            <Text style={[styles.genderText, gender === option && styles.genderTextSelected]}>
-                                {option}
-                            </Text>
-                        </TouchableOpacity>
-                    ))}
-                </View>
-
-                {/* Valid ID Upload */}
-                <Text style={styles.label}>Imahe ng Valid ID</Text>
-                <TouchableOpacity style={styles.imagePicker} onPress={pickImage}>
-                    {validIdImage ? (
-                        <Image source={{ uri: validIdImage }} style={styles.idImage} />
-                    ) : (
-                        <View style={styles.uploadPlaceholder}>
-                            <Ionicons name="camera" size={20} color="#6b7280" />
-                            <Text style={styles.uploadText}>Upload</Text>
+                {/* Data Privacy Consent Modal */}
+                <Modal transparent={true} animationType="slide" visible={consentModalVisible} onRequestClose={() => setConsentModalVisible(false)}>
+                    <View style={styles.modalOverlay}>
+                        <View style={styles.modalContent}>
+                            <Text style={styles.modalTitle}>Data Privacy Consent</Text>
+                            <ScrollView style={{ maxHeight: 300, marginBottom: 20 }}>
+                                <Text style={styles.consentText}>
+                                    By clicking "I Agree", I hereby grant my free, voluntary, and unconditional consent to KALINGA-APP to collect, store, and process my personal data, which may include my name, contact details, government IDs, etc.
+                                    {"\n"}{"\n"}
+                                    I understand that this information will be used for the purpose of processing my membership, or providing medical services. I further authorize the app to share this information with government services solely for the fulfillment of the declared purpose.
+                                    {"\n"}{"\n"}
+                                    I acknowledge that I have been informed of my rights as a Data Subject under the Data Privacy Act of 2012, including the right to access, correct, or request the deletion of my data. For any privacy-related concerns, I may contact the Data Protection Officer at urixfarinas@gmail.com.
+                                </Text>
+                            </ScrollView>
+                            <View style={styles.row}>
+                                <TouchableOpacity
+                                    style={[styles.consentButton, { backgroundColor: '#a855f7' }]}
+                                    onPress={handleConsentAgree}
+                                >
+                                    <Text style={styles.consentButtonText}>I Agree</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity
+                                    style={[styles.consentButton, { backgroundColor: '#ef4444' }]}
+                                    onPress={handleConsentDecline}
+                                >
+                                    <Text style={styles.consentButtonText}>Cancel</Text>
+                                </TouchableOpacity>
+                            </View>
                         </View>
-                    )}
-                </TouchableOpacity>
+                    </View>
+                </Modal>
 
-                {/* Register Button */}
-                <TouchableOpacity
-                    style={[styles.registerButton, isLoading && { opacity: 0.7 }]}
-                    onPress={handleRegister}
-                    disabled={isLoading}
-                >
-                    {isLoading ? (
-                        <Text style={styles.registerButtonText}>Loading...</Text>
-                    ) : (
-                        <Text style={styles.registerButtonText}>Register</Text>
-                    )}
-                </TouchableOpacity>
-
-                {/* Login Link */}
-                <View style={styles.footer}>
-                    <Text style={styles.footerText}>May account na? </Text>
-                    <TouchableOpacity onPress={() => router.push('/login-caretaker')}>
-                        <Text style={styles.linkText}>Mag-login</Text>
+                {/* Header */}
+                <View style={styles.header}>
+                    <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+                        <Ionicons name="arrow-back" size={24} color="#fff" />
+                        <Text style={styles.backText}>Bumalik</Text>
                     </TouchableOpacity>
+                    <Text style={styles.headerTitle}>Gumawa ng Account</Text>
+                    <Text style={styles.headerSubtitle}>Create your account for personalized care.</Text>
                 </View>
-            </View>
-        </ScrollView>
+
+                {/* Form */}
+                <View style={styles.formContainer}>
+                    {/* Requirements */}
+                    <View style={styles.requirementsBox}>
+                        <Text style={styles.reqTitle}>Mga Kailangan (Requirements)</Text>
+                        <Text style={styles.reqItem}>• Personal Information</Text>
+                    </View>
+
+                    {/* Inputs */}
+                    <Text style={styles.label}>Pangalan(Name)</Text>
+                    <TextInput style={styles.input} value={name} onChangeText={setName} />
+
+                    <Text style={styles.label}>Password</Text>
+                    <TextInput style={styles.input} value={password} onChangeText={setPassword} secureTextEntry />
+
+                    <Text style={styles.label}>Kumpirmahin ang iyong Password</Text>
+                    <TextInput style={styles.input} value={confirmPassword} onChangeText={setConfirmPassword} secureTextEntry />
+
+                    <Text style={styles.label}>Contact Number</Text>
+                    <TextInput style={styles.input} value={contact} onChangeText={setContact} keyboardType="phone-pad" />
+
+                    {/* Gender Selection */}
+                    <Text style={styles.label}>Kasarian (Gender)</Text>
+                    <View style={styles.genderContainer}>
+                        {['Male', 'Female', 'Others'].map((option) => (
+                            <TouchableOpacity
+                                key={option}
+                                style={[styles.genderButton, gender === option && styles.genderButtonSelected]}
+                                onPress={() => setGender(option)}
+                            >
+                                <Text style={[styles.genderText, gender === option && styles.genderTextSelected]}>
+                                    {option}
+                                </Text>
+                            </TouchableOpacity>
+                        ))}
+                    </View>
+
+                    {/* Valid ID Upload */}
+                    <Text style={styles.label}>Imahe ng Valid ID</Text>
+                    <TouchableOpacity style={styles.imagePicker} onPress={pickImage}>
+                        {validIdImage ? (
+                            <Image source={{ uri: validIdImage }} style={styles.idImage} />
+                        ) : (
+                            <View style={styles.uploadPlaceholder}>
+                                <Ionicons name="camera" size={20} color="#6b7280" />
+                                <Text style={styles.uploadText}>Upload</Text>
+                            </View>
+                        )}
+                    </TouchableOpacity>
+
+                    {/* Register Button */}
+                    <TouchableOpacity
+                        style={[styles.registerButton, isLoading && { opacity: 0.7 }]}
+                        onPress={handleRegister}
+                        disabled={isLoading}
+                    >
+                        {isLoading ? (
+                            <Text style={styles.registerButtonText}>Loading...</Text>
+                        ) : (
+                            <Text style={styles.registerButtonText}>Register</Text>
+                        )}
+                    </TouchableOpacity>
+
+                    {/* Login Link */}
+                    <View style={styles.footer}>
+                        <Text style={styles.footerText}>May account na? </Text>
+                        <TouchableOpacity onPress={() => router.push('/login-caretaker')}>
+                            <Text style={styles.linkText}>Mag-login</Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+            </ScrollView>
+        </KeyboardAvoidingView>
     );
 }
 
@@ -260,6 +262,7 @@ const styles = StyleSheet.create({
     container: {
         flexGrow: 1,
         backgroundColor: '#fff',
+        paddingBottom: 50,
     },
     header: {
         backgroundColor: '#a855f7', // Purple
