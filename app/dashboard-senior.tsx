@@ -137,7 +137,7 @@ export default function DashboardSeniorScreen() {
             {/* Footer Controls */}
             <View style={styles.footerControls}>
                 <FocusedCopilotStep active={isFocused} text="Pindutin dito para baguhin ang iyong mga settings." order={5} name="settings">
-                    <WalkthroughableView>
+                    <WalkthroughableView style={{ alignSelf: 'flex-start' }}>
                         {/* Settings button is autoWidth, so we don't need fixed width on wrapper, just let it wrap content */}
                         <AdaptiveButton
                             style={styles.settingsButton}
@@ -229,8 +229,7 @@ const styles = StyleSheet.create({
     },
     menuButton: {
         backgroundColor: '#3b82f6', // Bright blue
-        width: '95%',
-        alignSelf: 'center',
+        width: '100%', // Changed from 95% to 100% to fill the wrapper
         flexDirection: 'row',
         alignItems: 'center',
         padding: 20,
