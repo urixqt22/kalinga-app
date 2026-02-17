@@ -96,7 +96,7 @@ export default function SeniorNotificationsScreen() {
             {/* Header */}
             <View style={styles.header}>
                 <FocusedCopilotStep active={isFocused} text="Pindutin dito para bumalik." order={backButtonOrder} name="back-btn">
-                    <WalkthroughableView style={{ alignSelf: 'flex-start' }}>
+                    <WalkthroughableView style={{ alignSelf: 'flex-start' }} collapsable={false}>
                         <AdaptiveButton
                             style={styles.backButton}
                             onPress={() => router.back()}
@@ -118,7 +118,7 @@ export default function SeniorNotificationsScreen() {
                 {/* Connection Requests Section */}
                 {requests.length > 0 && (
                     <FocusedCopilotStep active={isFocused} text="Dito makikita ang mga request ng gustong kumonekta sa iyo." order={1} name="connection-requests">
-                        <WalkthroughableView style={{ marginBottom: 20 }}>
+                        <WalkthroughableView style={{ marginBottom: 20 }} collapsable={false}>
                             <Text style={styles.sectionTitle}>Connection Requests</Text>
                             {requests.map((request) => (
                                 <View key={request.id} style={[styles.notificationCard, { backgroundColor: '#fff', borderLeftWidth: 5, borderLeftColor: themeColor }]}>
@@ -156,7 +156,7 @@ export default function SeniorNotificationsScreen() {
 
                     {notifications.length === 0 && (
                         <FocusedCopilotStep active={isFocused} text="Wala kang bagong abiso sa ngayon." order={hasRequests ? 2 : 1} name="no-notifications">
-                            <WalkthroughableView>
+                            <WalkthroughableView collapsable={false}>
                                 <Text style={styles.emptyText}>No new notifications.</Text>
                             </WalkthroughableView>
                         </FocusedCopilotStep>
@@ -167,7 +167,7 @@ export default function SeniorNotificationsScreen() {
                         if (index === 0) {
                             return (
                                 <FocusedCopilotStep key={notif.id} active={isFocused} text="Dito makikita ang mga abiso o paalala." order={hasRequests ? 2 : 1} name="first-notification">
-                                    <WalkthroughableView style={[styles.notificationCard, { backgroundColor: themeColor }]}>
+                                    <WalkthroughableView style={[styles.notificationCard, { backgroundColor: themeColor }]} collapsable={false}>
                                         <View style={styles.iconCircle}>
                                             <Ionicons name="notifications-outline" size={30} color="#fff" />
                                         </View>

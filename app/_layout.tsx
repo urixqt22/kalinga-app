@@ -1,6 +1,7 @@
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import { Platform, StatusBar as RNStatusBar } from 'react-native';
 import { CopilotProvider } from 'react-native-copilot';
 import 'react-native-reanimated';
 
@@ -19,6 +20,7 @@ export default function RootLayout() {
         overlay="view"
         animated={true}
         arrowColor="transparent" // Clean look
+        verticalOffset={Platform.OS === 'android' ? RNStatusBar.currentHeight : 0}
         labels={{
           finish: "Tapos na",
           next: "Susunod",

@@ -51,7 +51,7 @@ export default function PresyonDashboardScreen() {
             {/* Header */}
             <View style={styles.header}>
                 <FocusedCopilotStep active={isFocused} text="Pindutin dito para bumalik." order={3} name="back-btn">
-                    <WalkthroughableView style={{ alignSelf: 'flex-start' }}>
+                    <WalkthroughableView style={{ alignSelf: 'flex-start' }} collapsable={false}>
                         <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
                             <Ionicons name="arrow-back" size={24} color="#fff" />
                             <Text style={styles.backText}>Bumalik</Text>
@@ -70,7 +70,7 @@ export default function PresyonDashboardScreen() {
                 <>
                     {/* Today's Vitals Card */}
                     <FocusedCopilotStep active={isFocused} text="Dito mo makikita ang huling sukat ng iyong presyon at sugar." order={1} name="latest-vitals">
-                        <WalkthroughableView style={styles.vitalsCard}>
+                        <WalkthroughableView style={styles.vitalsCard} collapsable={false}>
                             <View style={styles.vitalsHeader}>
                                 <MaterialCommunityIcons name="heart-pulse" size={24} color="#2563eb" />
                                 <Text style={styles.vitalsTitle}>Latest Vitals</Text>
@@ -96,7 +96,7 @@ export default function PresyonDashboardScreen() {
 
                     {/* History List */}
                     <FocusedCopilotStep active={isFocused} text="Dito nakalista ang mga nakaraang sukat." order={2} name="history-list">
-                        <WalkthroughableView style={styles.listContainer}>
+                        <WalkthroughableView style={styles.listContainer} collapsable={false}>
                             <Text style={{ fontSize: 18, fontWeight: 'bold', color: '#64748b', marginBottom: 15 }}>History</Text>
 
                             {vitals.map((vital) => (

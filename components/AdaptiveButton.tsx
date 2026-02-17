@@ -131,9 +131,9 @@ export const AdaptiveButton: React.FC<AdaptiveButtonProps> = ({
     )
     : 0;
 
-  // Base margin is -missPadding (to hide the padded area).
-  // contentMargin adds the extra space needed for the scaled button.
-  const animatedMargin = Animated.add(-missPadding, extraMargin);
+  // Base margin used to be -missPadding, but now that we removed padding from the container,
+  // we just need the positive extra margin to push neighbors away when scaling.
+  const animatedMargin = extraMargin;
 
   // Flatten style to preserve layout (flexDirection, etc.) in the wrapper
   const flatStyle = StyleSheet.flatten(style || {});
@@ -146,17 +146,21 @@ export const AdaptiveButton: React.FC<AdaptiveButtonProps> = ({
         styles.container,
         autoWidth ? { width: 'auto', alignSelf: 'flex-start' } : { width: '100%' },
         {
-          paddingVertical: missPadding,
+          // paddingVertical: missPadding, // REMOVED: This was causing the walkthrough highlight to be too big
           marginVertical: animatedMargin
         },
         containerStyle
       ]}>
       {/* 
         The "Miss" detector:
-        A transparent layer that fills the container (which includes padding).
-        If the user hits this but NOT the inner button, it counts as a miss.
+        A transparent layer that fills the container AND extends outwards using hitSlop.
+        We render it as 0 height/width so it doesn't affect layout, but use hitSlop to cover the area.
+        Actually, we can just make it absolute fill and use hitSlop to go beyond.
       */}
-      <TouchableWithoutFeedback onPress={handleMiss}>
+      <TouchableWithoutFeedback
+        onPress={handleMiss}
+        hitSlop={{ top: missPadding, bottom: missPadding, left: missPadding, right: missPadding }}
+      >
         <View style={StyleSheet.absoluteFill} />
       </TouchableWithoutFeedback>
 
@@ -202,5 +206,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     width: '100%',
     zIndex: 1,
+    // Ensure the container does not clip the hitSlop area (though hitslop usually works regardless of overflow on Android)
   },
 });

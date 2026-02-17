@@ -87,7 +87,7 @@ export default function KalusuganDashboardScreen() {
 
             {/* Reminder Card (Dynamic) */}
             <FocusedCopilotStep active={isFocused} text="Ito ang paalala para sa iyong susunod na gamot." order={1} name="reminder">
-                <WalkthroughableView>
+                <WalkthroughableView collapsable={false}>
                     {nextMed ? (
                         <TouchableOpacity style={styles.reminderCard} onPress={() => router.push('/dashboard-mga-gamot')}>
                             <View style={styles.reminderIconCircle}>
@@ -116,7 +116,7 @@ export default function KalusuganDashboardScreen() {
             <View style={styles.menuContainer}>
                 {menuItems.map((item, index) => (
                     <FocusedCopilotStep key={index} active={isFocused} text={item.desc} order={2 + index} name={`menu-${index}`}>
-                        <WalkthroughableView>
+                        <WalkthroughableView collapsable={false}>
                             <AdaptiveButton
                                 style={styles.menuItem}
                                 onPress={() => router.push(item.route as any)}
@@ -139,7 +139,7 @@ export default function KalusuganDashboardScreen() {
 
             {/* Footer Button - Reverted to Full Width */}
             <FocusedCopilotStep active={isFocused} text="Pindutin at magsalita para gamitin ang voice commands." order={5} name="voice-command">
-                <WalkthroughableView>
+                <WalkthroughableView collapsable={false}>
                     <AdaptiveButton
                         style={styles.footerButton}
                         onPress={() => { }}

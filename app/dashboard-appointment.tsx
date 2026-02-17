@@ -75,7 +75,7 @@ export default function AppointmentDashboardScreen() {
             {/* Header */}
             <View style={styles.header}>
                 <FocusedCopilotStep active={isFocused} text="Pindutin dito para bumalik." order={hasAppointments ? 3 : 2} name="back-btn">
-                    <WalkthroughableView style={{ alignSelf: 'flex-start' }}>
+                    <WalkthroughableView style={{ alignSelf: 'flex-start' }} collapsable={false}>
                         <AdaptiveButton
                             style={styles.backButton}
                             onPress={() => router.back()}
@@ -95,7 +95,7 @@ export default function AppointmentDashboardScreen() {
             {/* Notification Card (Latest Appointment) */}
             {hasAppointments && (
                 <FocusedCopilotStep active={isFocused} text="Ito ang susunod mong appointment." order={1} name="next-appointment">
-                    <WalkthroughableView style={styles.notificationCard}>
+                    <WalkthroughableView style={styles.notificationCard} collapsable={false}>
                         <View style={styles.notificationIconCircle}>
                             <Ionicons name="notifications" size={30} color="#fcfcfcff" />
                         </View>
@@ -125,7 +125,7 @@ export default function AppointmentDashboardScreen() {
                             if (index === 0) {
                                 return (
                                     <FocusedCopilotStep key={apt.id} active={isFocused} text="Dito makikita ang detalye ng iyong schedule." order={2} name="appointment-list-item">
-                                        <WalkthroughableView style={styles.scheduleCard}>
+                                        <WalkthroughableView style={styles.scheduleCard} collapsable={false}>
                                             <View style={styles.doctorIconBox}>
                                                 <MaterialCommunityIcons name="doctor" size={30} color="#3b82f6" />
                                             </View>
@@ -140,9 +140,9 @@ export default function AppointmentDashboardScreen() {
                                                 {/* Actions for Caretaker */}
                                                 <View style={styles.actionRow}>
                                                     <AdaptiveButton
-                                                        style={[styles.actionButton, { backgroundColor: '#dcfce7' }]}
+                                                        style={[styles.actionButton, { backgroundColor: '#dcfce7', justifyContent: 'center' }]}
                                                         onPress={() => handleUpdateStatus(apt.id, 'Completed')}
-                                                        autoWidth
+                                                        containerStyle={{ flex: 1 }}
                                                         missPadding={20}
                                                         maxScale={1.1}
                                                     >
@@ -151,9 +151,9 @@ export default function AppointmentDashboardScreen() {
                                                     </AdaptiveButton>
 
                                                     <AdaptiveButton
-                                                        style={[styles.actionButton, { backgroundColor: '#fee2e2' }]}
+                                                        style={[styles.actionButton, { backgroundColor: '#fee2e2', justifyContent: 'center' }]}
                                                         onPress={() => handleUpdateStatus(apt.id, 'Cancelled')}
-                                                        autoWidth
+                                                        containerStyle={{ flex: 1 }}
                                                         missPadding={20}
                                                         maxScale={1.1}
                                                     >
@@ -182,9 +182,9 @@ export default function AppointmentDashboardScreen() {
                                         {/* Actions for Caretaker */}
                                         <View style={styles.actionRow}>
                                             <AdaptiveButton
-                                                style={[styles.actionButton, { backgroundColor: '#dcfce7' }]}
+                                                style={[styles.actionButton, { backgroundColor: '#dcfce7', justifyContent: 'center' }]}
                                                 onPress={() => handleUpdateStatus(apt.id, 'Completed')}
-                                                autoWidth
+                                                containerStyle={{ flex: 1 }}
                                                 missPadding={20}
                                                 maxScale={1.1}
                                             >
@@ -193,9 +193,9 @@ export default function AppointmentDashboardScreen() {
                                             </AdaptiveButton>
 
                                             <AdaptiveButton
-                                                style={[styles.actionButton, { backgroundColor: '#fee2e2' }]}
+                                                style={[styles.actionButton, { backgroundColor: '#fee2e2', justifyContent: 'center' }]}
                                                 onPress={() => handleUpdateStatus(apt.id, 'Cancelled')}
-                                                autoWidth
+                                                containerStyle={{ flex: 1 }}
                                                 missPadding={20}
                                                 maxScale={1.1}
                                             >
@@ -210,7 +210,7 @@ export default function AppointmentDashboardScreen() {
 
                         {appointments.length === 0 && (
                             <FocusedCopilotStep active={isFocused} text="Wala kang nakatakdang appointment sa ngayon." order={1} name="no-appointment">
-                                <WalkthroughableView>
+                                <WalkthroughableView collapsable={false}>
                                     <Text style={{ textAlign: 'center', color: '#64748b', marginTop: 20 }}>
                                         No appointments scheduled.
                                     </Text>

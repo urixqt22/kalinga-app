@@ -41,7 +41,7 @@ export default function SerbisyoDashboardScreen() {
                 {/* Header */}
                 <View style={styles.header}>
                     <FocusedCopilotStep active={isFocused} text="Pindutin dito para bumalik." order={5} name="back-btn">
-                        <WalkthroughableView style={{ alignSelf: 'flex-start' }}>
+                        <WalkthroughableView style={{ alignSelf: 'flex-start' }} collapsable={false}>
                             <AdaptiveButton
                                 style={styles.backButton}
                                 onPress={() => router.back()}
@@ -63,7 +63,7 @@ export default function SerbisyoDashboardScreen() {
 
                     {/* SSS */}
                     <FocusedCopilotStep active={isFocused} text="Pindutin dito para sa impormasyon tungkol sa SSS." order={1} name="sss-btn">
-                        <WalkthroughableView>
+                        <WalkthroughableView collapsable={false}>
                             <AdaptiveButton
                                 style={styles.serviceCard}
                                 onPress={() => handleServicePress('SSS', () => MockGovService.fetchSSSStatus('current-user'), '/sss-pension')}
@@ -84,7 +84,7 @@ export default function SerbisyoDashboardScreen() {
 
                     {/* PhilHealth */}
                     <FocusedCopilotStep active={isFocused} text="Pindutin dito para sa impormasyon tungkol sa PhilHealth." order={2} name="philhealth-btn">
-                        <WalkthroughableView>
+                        <WalkthroughableView collapsable={false}>
                             <AdaptiveButton
                                 style={styles.serviceCard}
                                 onPress={() => handleServicePress('PhilHealth', () => MockGovService.fetchPhilHealthStatus('current-user'), '/philhealth')}
@@ -108,7 +108,7 @@ export default function SerbisyoDashboardScreen() {
 
                     {/* DSWD */}
                     <FocusedCopilotStep active={isFocused} text="Pindutin dito para sa impormasyon tungkol sa DSWD." order={3} name="dswd-btn">
-                        <WalkthroughableView>
+                        <WalkthroughableView collapsable={false}>
                             <AdaptiveButton
                                 style={styles.serviceCard}
                                 onPress={() => handleServicePress('DSWD', () => MockGovService.fetchDSWDStatus('current-user'), '/dswd')}
@@ -131,7 +131,7 @@ export default function SerbisyoDashboardScreen() {
 
                 {/* Footer Button */}
                 <FocusedCopilotStep active={isFocused} text="Pindutin at magsalita para sa iba pang tulong." order={4} name="voice-command">
-                    <WalkthroughableView>
+                    <WalkthroughableView collapsable={false}>
                         <AdaptiveButton
                             style={styles.footerButton}
                             onPress={() => { }} // No action defined in original file

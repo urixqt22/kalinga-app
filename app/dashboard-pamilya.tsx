@@ -176,7 +176,7 @@ export default function PamilyaDashboardScreen() {
                     <View style={styles.headerTop}>
                         {/* Back Button - Step 4 or 5 */}
                         <FocusedCopilotStep active={isFocused && isSenior && !modalVisible} text="Pindutin dito para bumalik." order={backOrder} name="back-btn">
-                            <WalkthroughableView style={{ alignSelf: 'flex-start' }}>
+                            <WalkthroughableView style={{ alignSelf: 'flex-start' }} collapsable={false}>
                                 <AdaptiveButton adaptive={!isCaretaker}
                                     style={styles.backButton}
                                     onPress={() => router.back()}
@@ -191,7 +191,7 @@ export default function PamilyaDashboardScreen() {
                         </FocusedCopilotStep>
 
                         <FocusedCopilotStep active={isFocused && isSenior && !modalVisible && hasContacts} text="Pindutin dito para magdagdag ng miyembro ng pamilya." order={2} name="top-right-add-btn">
-                            <WalkthroughableView>
+                            <WalkthroughableView collapsable={false}>
                                 <AdaptiveButton adaptive={!isCaretaker}
                                     onPress={() => setModalVisible(true)}
                                     autoWidth
@@ -221,7 +221,7 @@ export default function PamilyaDashboardScreen() {
 
                                         {/* Add Member Button - Step 1 (Empty State) */}
                                         <FocusedCopilotStep active={isFocused && isSenior && !modalVisible} text="Pindutin dito para magdagdag ng miyembro ng pamilya." order={1} name="add-member-btn">
-                                            <WalkthroughableView>
+                                            <WalkthroughableView collapsable={false}>
                                                 <AdaptiveButton adaptive={!isCaretaker}
                                                     style={[styles.addButton, { backgroundColor: themeColor }]}
                                                     containerStyle={{ alignSelf: 'center' }}
@@ -241,7 +241,7 @@ export default function PamilyaDashboardScreen() {
                                         if (index === 0) {
                                             return (
                                                 <FocusedCopilotStep key={contact.id} active={isFocused && isSenior && !modalVisible} text="Dito makikita ang iyong pamilya at ang kanilang status." order={1} name="first-contact-card">
-                                                    <WalkthroughableView>
+                                                    <WalkthroughableView collapsable={false}>
                                                         <FamilyCard contact={contact} />
                                                     </WalkthroughableView>
                                                 </FocusedCopilotStep>
@@ -260,7 +260,7 @@ export default function PamilyaDashboardScreen() {
             < View style={styles.footer} >
                 {/* Emergency Button - Step 2 or 3 */}
                 <FocusedCopilotStep active={isFocused && isSenior && !modalVisible} text="Pindutin dito para tumawag sa emergency hotline." order={emergencyOrder} name="emergency-btn">
-                    <WalkthroughableView style={{ flex: 1 }}>
+                    <WalkthroughableView style={{ flex: 1 }} collapsable={false}>
                         <AdaptiveButton adaptive={!isCaretaker}
                             style={styles.emergencyButton}
                             containerStyle={{ width: '100%' }} // Ensure fill
@@ -276,7 +276,7 @@ export default function PamilyaDashboardScreen() {
 
                 {/* Mic Button - Step 3 or 4 */}
                 <FocusedCopilotStep active={isFocused && isSenior && !modalVisible} text="Pindutin at magsalita para sa iba pang tulong." order={micOrder} name="mic-btn">
-                    <WalkthroughableView>
+                    <WalkthroughableView collapsable={false}>
                         <AdaptiveButton adaptive={!isCaretaker}
                             style={styles.micButton}
                             onPress={() => { }}
@@ -376,12 +376,11 @@ const styles = StyleSheet.create({
         // PaddingTop handled dynamically
     },
     header: {
-        // paddingTop: 60, // Handled dynamically in ScrollView
-        paddingBottom: 20,
+        paddingTop: 60,
+        paddingBottom: 30,
         paddingHorizontal: 20,
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
+        flexDirection: 'column',
+        justifyContent: 'center', // Changed from space-between
         borderBottomLeftRadius: 30,
         borderBottomRightRadius: 30,
         elevation: 5,
@@ -393,9 +392,11 @@ const styles = StyleSheet.create({
     },
     headerTop: {
         flexDirection: 'row',
+        width: '100%',
         justifyContent: 'space-between',
         alignItems: 'center',
-        marginBottom: 20,
+        marginBottom: 10,
+        paddingRight: 10, // Ensure right button doesn't touch edge
     },
     backButton: {
         flexDirection: 'row',
@@ -411,11 +412,13 @@ const styles = StyleSheet.create({
         color: '#fff',
         fontSize: 32,
         fontWeight: 'bold',
+        alignSelf: 'flex-start', // Force align left
     },
     headerSubtitle: {
         color: '#dbeafe',
         fontSize: 16,
         marginTop: 5,
+        alignSelf: 'flex-start', // Force align left
     },
     listContainer: {
         padding: 20,

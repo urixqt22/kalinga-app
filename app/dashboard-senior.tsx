@@ -40,7 +40,7 @@ export default function DashboardSeniorScreen() {
             {/* Header */}
             <View style={styles.header}>
                 <FocusedCopilotStep active={isFocused} text="Pindutin dito para mag-logout sa iyong account." order={6} name="logout-btn">
-                    <WalkthroughableView style={{ alignSelf: 'flex-start' }}>
+                    <WalkthroughableView style={{ alignSelf: 'flex-start', flexShrink: 1, maxWidth: '85%' }} collapsable={false}>
                         <AdaptiveButton
                             style={styles.logoutButton}
                             onPress={handleLogout}
@@ -54,13 +54,15 @@ export default function DashboardSeniorScreen() {
                     </WalkthroughableView>
                 </FocusedCopilotStep>
                 <FocusedCopilotStep active={isFocused} text="Tingnan ang iyong mga abiso (notifications) dito." order={4} name="notifications">
-                    <WalkthroughableTouchableOpacity
+                    <WalkthroughableView
                         style={styles.notificationContainer}
-                        onPress={() => router.push('/dashboard-notifications-senior')}
+                        collapsable={false}
                     >
-                        <Ionicons name="notifications" size={30} color="#2563eb" />
-                        {hasNotifications && <View style={styles.notificationBadge} />}
-                    </WalkthroughableTouchableOpacity>
+                        <TouchableOpacity onPress={() => router.push('/dashboard-notifications-senior')}>
+                            <Ionicons name="notifications" size={30} color="#2563eb" />
+                            {hasNotifications && <View style={styles.notificationBadge} />}
+                        </TouchableOpacity>
+                    </WalkthroughableView>
                 </FocusedCopilotStep>
             </View>
 
@@ -80,44 +82,41 @@ export default function DashboardSeniorScreen() {
             {/* Menu Buttons */}
             <View style={styles.menuContainer}>
                 <FocusedCopilotStep active={isFocused} text="Pindutin dito para makita ang iyong datos sa kalusugan." order={1} name="health">
-                    <WalkthroughableView style={{ width: '95%', alignSelf: 'center' }}>
+                    <WalkthroughableView style={{ width: '95%', alignSelf: 'center' }} collapsable={false}>
                         <AdaptiveButton
                             style={styles.menuButton}
                             onPress={() => router.push('/dashboard-kalusugan')}
-                            missPadding={0} // Disable extra padding to fix walkthrough highlight
+                            missPadding={20} // Disable extra padding to fix walkthrough highlight
                             maxScale={1.05}
                         >
-                            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                                <View style={[styles.menuIconCircle, { backgroundColor: 'rgba(59, 130, 246, 0.2)' }]}>
-                                    <Ionicons name="heart-outline" size={24} color="#fff" />
-                                </View>
-                                <Text style={[styles.menuText, { fontSize: getFontSize(18) }]}>Kalusugan</Text>
+                            <View style={[styles.menuIconCircle, { backgroundColor: 'rgba(59, 130, 246, 0.2)' }]}>
+                                <Ionicons name="heart-outline" size={24} color="#fff" />
                             </View>
+                            <Text style={[styles.menuText, { fontSize: getFontSize(18) }]}>KalusuganL</Text>
                             <Ionicons name="chevron-forward" size={24} color="#fff" />
                         </AdaptiveButton>
                     </WalkthroughableView>
                 </FocusedCopilotStep>
 
                 <FocusedCopilotStep active={isFocused} text="Dito mo makikita ang mga serbisyo ng gobyerno." order={2} name="services">
-                    <WalkthroughableView style={{ width: '95%', alignSelf: 'center' }}>
+                    <WalkthroughableView style={{ width: '95%', alignSelf: 'center' }} collapsable={false}>
                         <AdaptiveButton
                             style={styles.menuButton}
                             onPress={() => router.push('/dashboard-serbisyo')}
-                            missPadding={0} // Disable extra padding
+                            missPadding={20} // Disable extra padding
+                            maxScale={1.05}
                         >
-                            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                                <View style={[styles.menuIconCircle, { backgroundColor: 'rgba(59, 130, 246, 0.2)' }]}>
-                                    <Ionicons name="newspaper-outline" size={24} color="#fff" />
-                                </View>
-                                <Text style={[styles.menuText, { fontSize: getFontSize(16), maxWidth: '80%' }]} numberOfLines={1} adjustsFontSizeToFit>Serbisyo ng Gobyerno</Text>
+                            <View style={[styles.menuIconCircle, { backgroundColor: 'rgba(59, 130, 246, 0.2)' }]}>
+                                <Ionicons name="newspaper-outline" size={24} color="#fff" />
                             </View>
+                            <Text style={[styles.menuText, { fontSize: getFontSize(16), maxWidth: '80%' }]} numberOfLines={1} adjustsFontSizeToFit>Serbisyo ng GobyernoL</Text>
                             <Ionicons name="chevron-forward" size={24} color="#fff" />
                         </AdaptiveButton>
                     </WalkthroughableView>
                 </FocusedCopilotStep>
 
                 <FocusedCopilotStep active={isFocused} text="Pindutin ito para sa mga feature ng pamilya." order={3} name="family">
-                    <WalkthroughableView style={{ width: '95%', alignSelf: 'center' }}>
+                    <WalkthroughableView style={{ width: '95%', alignSelf: 'center' }} collapsable={false}>
                         <AdaptiveButton
                             style={styles.menuButton}
                             onPress={() => router.push('/dashboard-pamilya')}
@@ -126,7 +125,7 @@ export default function DashboardSeniorScreen() {
                             <View style={styles.menuIconCircle}>
                                 <Ionicons name="people-outline" size={30} color="#fff" />
                             </View>
-                            <Text style={[styles.menuText, { fontSize: getFontSize(18) }]}>Pamilya</Text>
+                            <Text style={[styles.menuText, { fontSize: getFontSize(18) }]}>PamilyaL</Text>
                             <Ionicons name="chevron-forward" size={24} color="#fff" />
                         </AdaptiveButton>
                     </WalkthroughableView>
@@ -137,7 +136,7 @@ export default function DashboardSeniorScreen() {
             {/* Footer Controls */}
             <View style={styles.footerControls}>
                 <FocusedCopilotStep active={isFocused} text="Pindutin dito para baguhin ang iyong mga settings." order={5} name="settings">
-                    <WalkthroughableView style={{ alignSelf: 'flex-start' }}>
+                    <WalkthroughableView style={{ flexShrink: 1, maxWidth: '75%', justifyContent: 'center' }} collapsable={false}>
                         {/* Settings button is autoWidth, so we don't need fixed width on wrapper, just let it wrap content */}
                         <AdaptiveButton
                             style={styles.settingsButton}
@@ -153,7 +152,7 @@ export default function DashboardSeniorScreen() {
                 </FocusedCopilotStep>
 
                 <FocusedCopilotStep active={isFocused} text="Pindutin at magsalita para sa iba pang tulong." order={7} name="voice-btn">
-                    <WalkthroughableView>
+                    <WalkthroughableView collapsable={false}>
                         <TouchableOpacity style={styles.micButton}>
                             <Ionicons name="mic" size={32} color="#fff" />
                         </TouchableOpacity>
@@ -257,6 +256,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         marginTop: 'auto', // Push to bottom
         paddingBottom: 20, // Add specific padding for the footer
+        gap: 10, // Ensure some spacing between elements
     },
     settingsButton: {
         flexDirection: 'row',
@@ -264,8 +264,9 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderColor: '#3b82f6',
         paddingVertical: 12,
-        paddingHorizontal: 40,
+        paddingHorizontal: 20, // Reduced from 40 for better fit on small screens
         borderRadius: 20,
+        flexShrink: 1, // Allow shrinking if needed
     },
     settingsText: {
         color: '#2563eb',
@@ -276,11 +277,12 @@ const styles = StyleSheet.create({
     micButton: {
         width: 60,
         height: 60,
-        borderRadius: 20,
+        borderRadius: 30, // Fully round
         backgroundColor: '#2563eb',
         justifyContent: 'center',
         alignItems: 'center',
         elevation: 4,
+        flexShrink: 0, // Prevent mic button from shrinking
     },
     notificationContainer: {
         position: 'relative',

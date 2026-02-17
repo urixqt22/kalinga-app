@@ -38,7 +38,7 @@ export default function WelcomeSeniorScreen() {
 
             <View style={styles.buttonContainer}>
                 <FocusedCopilotStep active={isFocused} text="Pindutin dito para mag-login sa iyong account." order={1} name="login">
-                    <WalkthroughableView style={{ width: '95%', alignSelf: 'center' }}>
+                    <WalkthroughableView style={{ width: '95%', alignSelf: 'center' }} collapsable={false}>
                         <AdaptiveButton
                             style={styles.loginButton}
                             onPress={() => router.push('/login-senior')}
@@ -51,7 +51,7 @@ export default function WelcomeSeniorScreen() {
                 </FocusedCopilotStep>
 
                 <FocusedCopilotStep active={isFocused} text="Pindutin dito para gumawa ng bagong account." order={2} name="register">
-                    <WalkthroughableView style={{ width: '95%', alignSelf: 'center' }}>
+                    <WalkthroughableView style={{ width: '95%', alignSelf: 'center' }} collapsable={false}>
                         <AdaptiveButton
                             style={styles.registerButton}
                             onPress={() => router.push('/register-senior')}
@@ -65,7 +65,7 @@ export default function WelcomeSeniorScreen() {
             </View>
 
             <FocusedCopilotStep active={isFocused} text="Pindutin dito kung may emergency para makakuha agad ng tulong." order={3} name="sos">
-                <WalkthroughableView style={{ width: '95%', alignSelf: 'center' }}>
+                <WalkthroughableView style={{ width: '95%', alignSelf: 'center' }} collapsable={false}>
                     <AdaptiveButton style={styles.sosButton} onPress={() => router.push('/emergency')} missPadding={30} maxScale={1.05}>
                         <Text style={styles.sosText}>EMERGENCY SOS</Text>
                     </AdaptiveButton>

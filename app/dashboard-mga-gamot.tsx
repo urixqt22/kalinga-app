@@ -84,7 +84,7 @@ export default function MgaGamotDashboardScreen() {
                 {/* Header */}
                 <View style={styles.header}>
                     <FocusedCopilotStep active={isFocused} text="Pindutin dito para bumalik sa dashboard." order={nextUpMed ? 3 : 2} name="back-btn">
-                        <WalkthroughableView style={{ alignSelf: 'flex-start' }}>
+                        <WalkthroughableView style={{ alignSelf: 'flex-start' }} collapsable={false}>
                             <AdaptiveButton
                                 style={styles.backButton}
                                 onPress={() => router.back()}
@@ -104,15 +104,17 @@ export default function MgaGamotDashboardScreen() {
                 {/* Next Up Card */}
                 {nextUpMed ? (
                     <FocusedCopilotStep active={isFocused} text="Ito ang susunod mong iinumin. Pindutin para markahan." order={1} name="next-up">
-                        <WalkthroughableTouchableOpacity style={styles.nextUpCard} onPress={() => handleMedPress(nextUpMed)}>
-                            <View style={styles.nextUpIconCircle}>
-                                <Ionicons name="notifications" size={30} color="#fff" />
-                            </View>
-                            <View>
-                                <Text style={styles.nextUpTitle}>Next Up: {nextUpMed.name} {nextUpMed.dosage}</Text>
-                                <Text style={styles.nextUpSubtitle}>{nextUpMed.time}</Text>
-                            </View>
-                        </WalkthroughableTouchableOpacity>
+                        <WalkthroughableView style={styles.nextUpCard} collapsable={false}>
+                            <TouchableOpacity onPress={() => handleMedPress(nextUpMed)} style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}>
+                                <View style={styles.nextUpIconCircle}>
+                                    <Ionicons name="notifications" size={30} color="#fff" />
+                                </View>
+                                <View>
+                                    <Text style={styles.nextUpTitle}>Next Up: {nextUpMed.name} {nextUpMed.dosage}</Text>
+                                    <Text style={styles.nextUpSubtitle}>{nextUpMed.time}</Text>
+                                </View>
+                            </TouchableOpacity>
+                        </WalkthroughableView>
                     </FocusedCopilotStep>
                 ) : (
                     /* Show 'All Clear' step if no next up med AND list is not empty (handled below, this block was duplicate) */
@@ -122,7 +124,7 @@ export default function MgaGamotDashboardScreen() {
                 {/* All Clear Card (Added to match Kalusugan style if all taken) */}
                 {!loading && meds.length > 0 && !nextUpMed && (
                     <FocusedCopilotStep active={isFocused} text="Mahusay! Tapos na ang lahat ng gamot ngayong araw." order={1} name="all-clear-card">
-                        <WalkthroughableView style={[styles.nextUpCard, { backgroundColor: '#10b981' }]}>
+                        <WalkthroughableView style={[styles.nextUpCard, { backgroundColor: '#10b981' }]} collapsable={false}>
                             <View style={styles.nextUpIconCircle}>
                                 <Ionicons name="checkmark-done" size={30} color="#fff" />
                             </View>
@@ -155,25 +157,30 @@ export default function MgaGamotDashboardScreen() {
                                 if (isFirstScheduled) {
                                     return (
                                         <FocusedCopilotStep key={med.id} active={isFocused} text="Maaari mo ring pindutin dito sa listahan." order={2} name="first-med-item">
-                                            <WalkthroughableTouchableOpacity
+                                            <WalkthroughableView
                                                 style={[styles.medCard, med.status === 'Taken' && styles.medCardTaken]}
-                                                onPress={() => handleMedPress(med)}
-                                                disabled={med.status === 'Taken'}
+                                                collapsable={false}
                                             >
-                                                <View style={[styles.medIconBox, med.status === 'Taken' && { backgroundColor: '#dcfce7' }]}>
-                                                    <MaterialCommunityIcons
-                                                        name={med.status === 'Taken' ? "check" : "pill"}
-                                                        size={24}
-                                                        color={med.status === 'Taken' ? "#22c55e" : "#3b82f6"}
-                                                    />
-                                                </View>
-                                                <View style={[med.status === 'Taken' && { opacity: 1 }]}>
-                                                    <Text style={[styles.medName, med.status === 'Taken' && { color: '#374151' }]}>
-                                                        {med.name} {med.dosage}
-                                                    </Text>
-                                                    <Text style={styles.medTime}>{med.time} • {med.status}</Text>
-                                                </View>
-                                            </WalkthroughableTouchableOpacity>
+                                                <TouchableOpacity
+                                                    onPress={() => handleMedPress(med)}
+                                                    disabled={med.status === 'Taken'}
+                                                    style={{ flexDirection: 'row', alignItems: 'center', flex: 1 }}
+                                                >
+                                                    <View style={[styles.medIconBox, med.status === 'Taken' && { backgroundColor: '#dcfce7' }]}>
+                                                        <MaterialCommunityIcons
+                                                            name={med.status === 'Taken' ? "check" : "pill"}
+                                                            size={24}
+                                                            color={med.status === 'Taken' ? "#22c55e" : "#3b82f6"}
+                                                        />
+                                                    </View>
+                                                    <View style={[med.status === 'Taken' && { opacity: 1 }]}>
+                                                        <Text style={[styles.medName, med.status === 'Taken' && { color: '#374151' }]}>
+                                                            {med.name} {med.dosage}
+                                                        </Text>
+                                                        <Text style={styles.medTime}>{med.time} • {med.status}</Text>
+                                                    </View>
+                                                </TouchableOpacity>
+                                            </WalkthroughableView>
                                         </FocusedCopilotStep>
                                     );
                                 }
