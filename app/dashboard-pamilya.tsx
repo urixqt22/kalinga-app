@@ -1,4 +1,5 @@
 import { AdaptiveButton } from '@/components/AdaptiveButton';
+import { useVoiceNavigation } from '@/hooks/useVoiceNavigation';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useIsFocused } from '@react-navigation/native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
@@ -28,11 +29,33 @@ export default function PamilyaDashboardScreen() {
     const isFocused = useIsFocused();
     const insets = useSafeAreaInsets();
 
+    // Voice Navigation with Custom Calling Command
+    const { isListening, isCommandActive, startListening, stopListening, manuallyTriggerActivation } = useVoiceNavigation({
+        onCustomCommand: (command) => {
+            if (command.includes('tawag') || command.includes('call')) {
+                // Find contact name in command
+                const matchedContact = contacts.find(c => command.includes(c.name.toLowerCase()));
+                if (matchedContact && matchedContact.phoneNumber) {
+                    Linking.openURL(`tel:${matchedContact.phoneNumber}`);
+                    return true; // Handled
+                }
+            }
+            return false;
+        }
+    });
+
+    // Auto-start listening
+    useEffect(() => {
+        startListening();
+        return () => { stopListening(); };
+    }, []);
+
     // State
     const [contacts, setContacts] = useState<FamilyContact[]>([]);
     const [loading, setLoading] = useState(true);
     const [modalVisible, setModalVisible] = useState(false);
     const [targetUserId, setTargetUserId] = useState<string | null>(null);
+    const [callingContact, setCallingContact] = useState<FamilyContact | null>(null);
 
     // Form State
     const [newName, setNewName] = useState('');
@@ -101,6 +124,14 @@ export default function PamilyaDashboardScreen() {
         }
     }
 
+    const handleCall = (contact: FamilyContact) => {
+        setCallingContact(contact);
+    };
+
+    const endCall = () => {
+        setCallingContact(null);
+    };
+
     const FamilyCard = ({ contact }: { contact: FamilyContact }) => (
         <View style={styles.card}>
             <View style={styles.cardHeader}>
@@ -130,7 +161,7 @@ export default function PamilyaDashboardScreen() {
                 <AdaptiveButton adaptive={!isCaretaker}
                     style={[styles.actionButton, { backgroundColor: '#22c55e' }]}
                     containerStyle={{ flex: 1 }}
-                    onPress={() => { }}
+                    onPress={() => handleCall(contact)}
                     missPadding={10}
                     maxScale={1.05}
                 >
@@ -278,13 +309,23 @@ export default function PamilyaDashboardScreen() {
                 <FocusedCopilotStep active={isFocused && isSenior && !modalVisible} text="Pindutin at magsalita para sa iba pang tulong." order={micOrder} name="mic-btn">
                     <WalkthroughableView collapsable={false}>
                         <AdaptiveButton adaptive={!isCaretaker}
-                            style={styles.micButton}
-                            onPress={() => { }}
+                            style={[
+                                styles.micButton,
+                                isCommandActive && { backgroundColor: '#ef4444' },
+                                (!isCommandActive && isListening) && { backgroundColor: '#3b82f6', opacity: 0.8 }
+                            ]}
+                            onPress={() => {
+                                if (isCommandActive || isListening) {
+                                    manuallyTriggerActivation();
+                                } else {
+                                    startListening().then(() => manuallyTriggerActivation());
+                                }
+                            }}
                             missPadding={15}
                             maxScale={1.1}
                             autoWidth
                         >
-                            <Ionicons name="mic" size={28} color="#fff" />
+                            <Ionicons name={isCommandActive ? "mic" : "mic-outline"} size={28} color="#fff" />
                         </AdaptiveButton>
                     </WalkthroughableView>
                 </FocusedCopilotStep>
@@ -362,6 +403,31 @@ export default function PamilyaDashboardScreen() {
                     </View>
                 </View>
             </Modal >
+            {/* Calling Modal */}
+            <Modal
+                animationType="slide"
+                transparent={false}
+                visible={!!callingContact}
+                onRequestClose={endCall}
+            >
+                <View style={[styles.callingContainer, { backgroundColor: '#fff' }]}>
+                    <View style={styles.callingContent}>
+                        <View style={[styles.avatarCircleLarge, { backgroundColor: isCaretaker ? '#f3e8ff' : '#dbeafe' }]}>
+                            <MaterialCommunityIcons name="face-man-profile" size={100} color={themeColor} />
+                        </View>
+                        <Text style={[styles.callingName, { color: textColor }]}>{callingContact?.name}</Text>
+                        <Text style={styles.callingRelation}>{callingContact?.relationship}</Text>
+                        <Text style={[styles.callingStatus, { color: themeColor }]}>Calling...</Text>
+                    </View>
+
+                    <View style={styles.callingActions}>
+                        <TouchableOpacity style={styles.endCallButton} onPress={endCall}>
+                            <MaterialCommunityIcons name="phone-hangup" size={40} color="#fff" />
+                        </TouchableOpacity>
+                        <Text style={styles.endCallText}>End Call</Text>
+                    </View>
+                </View>
+            </Modal>
         </View >
     );
 }
@@ -605,5 +671,63 @@ const styles = StyleSheet.create({
     addButtonText: {
         color: '#fff',
         fontWeight: 'bold',
+    },
+    // Calling Screen Styles
+    callingContainer: {
+        flex: 1,
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        paddingVertical: 100,
+    },
+    callingContent: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        flex: 1,
+    },
+    avatarCircleLarge: {
+        width: 150,
+        height: 150,
+        borderRadius: 75,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginBottom: 30,
+    },
+    callingName: {
+        fontSize: 32,
+        fontWeight: 'bold',
+        marginBottom: 10,
+    },
+    callingRelation: {
+        fontSize: 20,
+        color: '#64748b',
+        marginBottom: 20,
+    },
+    callingStatus: {
+        fontSize: 18,
+        fontWeight: '600',
+        marginTop: 20,
+    },
+    callingActions: {
+        alignItems: 'center',
+        marginBottom: 50,
+    },
+    endCallButton: {
+        width: 80,
+        height: 80,
+        borderRadius: 40,
+        backgroundColor: '#ef4444',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginBottom: 10,
+        elevation: 5,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.3,
+        shadowRadius: 5,
+    },
+    endCallText: {
+        color: '#64748b',
+        fontSize: 16,
+        fontWeight: '600',
     },
 });

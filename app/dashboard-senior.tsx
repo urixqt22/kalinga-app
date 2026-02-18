@@ -2,7 +2,7 @@ import { AdaptiveButton } from '@/components/AdaptiveButton';
 import { Ionicons } from '@expo/vector-icons';
 import { useIsFocused } from '@react-navigation/native';
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { CopilotStep, walkthroughable } from 'react-native-copilot';
 import { auth } from '../configs/firebase';
@@ -18,6 +18,7 @@ const FocusedCopilotStep = ({ active, children, ...props }: any) => {
     return <CopilotStep {...props}>{children}</CopilotStep>;
 };
 
+import { useVoiceNavigation } from '@/hooks/useVoiceNavigation';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function DashboardSeniorScreen() {
@@ -25,6 +26,15 @@ export default function DashboardSeniorScreen() {
     const isFocused = useIsFocused();
     const { getFontSize } = useSettings();
     const insets = useSafeAreaInsets();
+    const { isListening, isCommandActive, startListening, stopListening, manuallyTriggerActivation } = useVoiceNavigation();
+
+    // Auto-start listening on mount (optional, but good for "always on")
+    useEffect(() => {
+        startListening();
+        return () => {
+            stopListening();
+        };
+    }, []);
     const [userName, setUserName] = useState('');
     const [hasNotifications, setHasNotifications] = useState(false);
 
@@ -92,7 +102,7 @@ export default function DashboardSeniorScreen() {
                             <View style={[styles.menuIconCircle, { backgroundColor: 'rgba(59, 130, 246, 0.2)' }]}>
                                 <Ionicons name="heart-outline" size={24} color="#fff" />
                             </View>
-                            <Text style={[styles.menuText, { fontSize: getFontSize(18) }]}>KalusuganL</Text>
+                            <Text style={[styles.menuText, { fontSize: getFontSize(18) }]}>Kalusugan</Text>
                             <Ionicons name="chevron-forward" size={24} color="#fff" />
                         </AdaptiveButton>
                     </WalkthroughableView>
@@ -109,7 +119,7 @@ export default function DashboardSeniorScreen() {
                             <View style={[styles.menuIconCircle, { backgroundColor: 'rgba(59, 130, 246, 0.2)' }]}>
                                 <Ionicons name="newspaper-outline" size={24} color="#fff" />
                             </View>
-                            <Text style={[styles.menuText, { fontSize: getFontSize(16), maxWidth: '80%' }]} numberOfLines={1} adjustsFontSizeToFit>Serbisyo ng GobyernoL</Text>
+                            <Text style={[styles.menuText, { fontSize: getFontSize(16), maxWidth: '80%' }]} numberOfLines={1} adjustsFontSizeToFit>Serbisyo ng Gobyerno</Text>
                             <Ionicons name="chevron-forward" size={24} color="#fff" />
                         </AdaptiveButton>
                     </WalkthroughableView>
@@ -125,7 +135,7 @@ export default function DashboardSeniorScreen() {
                             <View style={styles.menuIconCircle}>
                                 <Ionicons name="people-outline" size={30} color="#fff" />
                             </View>
-                            <Text style={[styles.menuText, { fontSize: getFontSize(18) }]}>PamilyaL</Text>
+                            <Text style={[styles.menuText, { fontSize: getFontSize(18) }]}>Pamilya</Text>
                             <Ionicons name="chevron-forward" size={24} color="#fff" />
                         </AdaptiveButton>
                     </WalkthroughableView>
@@ -153,9 +163,27 @@ export default function DashboardSeniorScreen() {
 
                 <FocusedCopilotStep active={isFocused} text="Pindutin at magsalita para sa iba pang tulong." order={7} name="voice-btn">
                     <WalkthroughableView collapsable={false}>
-                        <TouchableOpacity style={styles.micButton}>
-                            <Ionicons name="mic" size={32} color="#fff" />
-                        </TouchableOpacity>
+                        <AdaptiveButton
+                            style={[
+                                styles.micButton,
+                                isCommandActive && { backgroundColor: '#ef4444' },
+                                (!isCommandActive && isListening) && { backgroundColor: '#3b82f6', opacity: 0.8 }
+                            ]}
+                            onPress={() => {
+                                if (isCommandActive) {
+                                    manuallyTriggerActivation(); // Reset timer/keep active
+                                } else if (isListening) {
+                                    manuallyTriggerActivation(); // Manual Trigger
+                                } else {
+                                    startListening().then(() => manuallyTriggerActivation());
+                                }
+                            }}
+                            missPadding={15}
+                            maxScale={1.1}
+                            autoWidth
+                        >
+                            <Ionicons name={isCommandActive ? "mic" : "mic-outline"} size={32} color="#fff" />
+                        </AdaptiveButton>
                     </WalkthroughableView>
                 </FocusedCopilotStep>
             </View>

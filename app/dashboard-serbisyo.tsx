@@ -1,9 +1,10 @@
 import { AdaptiveButton } from '@/components/AdaptiveButton';
+import { useVoiceNavigation } from '@/hooks/useVoiceNavigation';
 import { MockGovService } from '@/services/mockGovApi';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useIsFocused } from '@react-navigation/native';
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ActivityIndicator, Modal, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { CopilotStep, walkthroughable } from 'react-native-copilot';
 
@@ -17,7 +18,14 @@ const FocusedCopilotStep = ({ active, children, ...props }: any) => {
 export default function SerbisyoDashboardScreen() {
     const router = useRouter();
     const isFocused = useIsFocused();
+    const { isListening, isCommandActive, startListening, stopListening, manuallyTriggerActivation } = useVoiceNavigation();
     const [loading, setLoading] = useState(false);
+
+    // Auto-start listening
+    useEffect(() => {
+        startListening();
+        return () => { stopListening(); };
+    }, []);
     const [loadingText, setLoadingText] = useState('');
 
     const handleServicePress = async (serviceName: string, serviceFn: () => Promise<any>, route: string) => {
@@ -133,13 +141,25 @@ export default function SerbisyoDashboardScreen() {
                 <FocusedCopilotStep active={isFocused} text="Pindutin at magsalita para sa iba pang tulong." order={4} name="voice-command">
                     <WalkthroughableView collapsable={false}>
                         <AdaptiveButton
-                            style={styles.footerButton}
-                            onPress={() => { }} // No action defined in original file
+                            style={[
+                                styles.footerButton,
+                                isCommandActive && { backgroundColor: '#ef4444' },
+                                (!isCommandActive && isListening) && { backgroundColor: '#3b82f6', opacity: 0.8 }
+                            ]}
+                            onPress={() => {
+                                if (isCommandActive || isListening) {
+                                    manuallyTriggerActivation();
+                                } else {
+                                    startListening().then(() => manuallyTriggerActivation());
+                                }
+                            }}
                             missPadding={20}
                             maxScale={1.05}
                         >
-                            <Ionicons name="mic" size={28} color="#fff" style={{ marginRight: 10 }} />
-                            <Text style={styles.footerButtonText}>Magsalita</Text>
+                            <Ionicons name={isCommandActive ? "mic" : "mic-outline"} size={28} color="#fff" style={{ marginRight: 10 }} />
+                            <Text style={styles.footerButtonText}>
+                                {isCommandActive ? 'Nakikinig...' : 'Magsalita'}
+                            </Text>
                         </AdaptiveButton>
                     </WalkthroughableView>
                 </FocusedCopilotStep>

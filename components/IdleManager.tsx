@@ -36,7 +36,7 @@ export const IdleManager = ({ children }: { children: React.ReactNode }) => {
     const isTargetScreen = pathname.includes('welcome-senior') || pathname.includes('dashboard-senior') || pathname.includes('dashboard-kalusugan') || pathname.includes('dashboard-mga-gamot') || pathname.includes('dashboard-presyon') || pathname.includes('dashboard-appointment') || pathname.includes('dashboard-serbisyo') || pathname.includes('dashboard-notifications-senior') || pathname.includes('dashboard-pamilya');
 
     const { isIdle, panResponder, resetTimer } = useIdle({
-        timeout: 5000, // 5 seconds for testing
+        timeout: 60000,
         onIdle: () => {
             console.log('IdleManager: User is idle on:', pathname);
             console.log('IdleManager: isTargetScreen:', isTargetScreen);
